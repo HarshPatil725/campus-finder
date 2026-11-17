@@ -67,7 +67,6 @@ async function getAccessPointById(req, res, next) {
     try {
         const { id } = req.params;
 
-        // Fetch access point with latest status
         const apSql = `
             SELECT
                 access_point_id,
@@ -139,7 +138,46 @@ async function getAccessPointById(req, res, next) {
     }
 }
 
+/**
+ * PATCH /api/access-points/:id
+ * Updates access point metadata (building, location)
+ */
+async function updateAccessPoint(req, res, next) {
+    try {
+        const { id } = req.params;
+        const { building, location } = req.body;
+
+        const checkSql = 'SELECT * FROM access_points WHERE LOWER(access_point_id) = LOWER($1)';
+        const checkRes = await query(checkSql, [id]);
+
+        if (checkRes.rows.length === 0) {
+            return res.status(404).json({ status: 'error', message: `Access point '${id}' not found` });
+        }
+
+        const current = checkRes.rows[0];
+        const newBuilding = building ? building.trim() : current.building;
+        const newLocation = location ? location.trim() : current.location;
+
+        const updateSql = `
+            UPDATE access_points
+            SET building = $1, location = $2
+            WHERE access_point_id = $3
+            RETURNING *
+        `;
+        const updateRes = await query(updateSql, [newBuilding, newLocation, current.access_point_id]);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Access point updated successfully',
+            data: updateRes.rows[0],
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     getAllAccessPoints,
     getAccessPointById,
+    updateAccessPoint,
 };

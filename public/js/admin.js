@@ -1,5 +1,5 @@
 /**
- * Page 7: System Administration Controller
+ * Page 7: System Administration Controller (Phase 6 Write Operations)
  */
 document.addEventListener('DOMContentLoaded', () => {
     const addReadingForm = document.getElementById('addReadingForm');
@@ -37,9 +37,9 @@ document.addEventListener('DOMContentLoaded', () => {
         alertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
-    // Input Validation for Entering New Simulated Reading
+    // Functionality 1: Add Network Reading into PostgreSQL
     if (addReadingForm) {
-        addReadingForm.addEventListener('submit', (e) => {
+        addReadingForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const apId = document.getElementById('adminApSelect').value;
             const timestamp = document.getElementById('adminReadingTimestamp').value.trim();
@@ -47,35 +47,68 @@ document.addEventListener('DOMContentLoaded', () => {
             const packetLossStr = document.getElementById('adminReadingPacketLoss').value;
             const isUp = document.getElementById('adminReadingIsUp').checked;
 
+            if (!apId) {
+                showBanner('VALIDATION ERROR', 'Please select a target access point.', false);
+                return;
+            }
+
+            if (!timestamp) {
+                showBanner('VALIDATION ERROR', 'Timestamp is required.', false);
+                return;
+            }
+
             const packetLoss = parseFloat(packetLossStr);
             if (isNaN(packetLoss) || packetLoss < 0 || packetLoss > 100) {
                 showBanner('VALIDATION ERROR', 'Packet loss percentage must be between 0 and 100.', false);
                 return;
             }
 
-            if (latencyStr !== '') {
-                const latency = parseFloat(latencyStr);
-                if (isNaN(latency) || latency < 0) {
-                    showBanner('VALIDATION ERROR', 'Latency cannot be negative.', false);
-                    return;
+            let latency = null;
+            if (isUp) {
+                if (latencyStr !== '') {
+                    latency = parseFloat(latencyStr);
+                    if (isNaN(latency) || latency < 0) {
+                        showBanner('VALIDATION ERROR', 'Latency cannot be negative.', false);
+                        return;
+                    }
+                } else {
+                    latency = 0;
                 }
+            } else {
+                latency = null;
             }
 
-            if (!isUp && latencyStr !== '') {
-                showBanner('VALIDATION NOTICE', 'Offline devices (is_up = false) typically have NULL latency. Latency input will be ignored for offline reading.', true);
-            }
+            try {
+                const readingPayload = {
+                    access_point_id: apId,
+                    timestamp,
+                    latency_ms: latency,
+                    packet_loss_pct: packetLoss,
+                    is_up: isUp,
+                };
 
-            showBanner(
-                'INPUT VALIDATED & STAGED',
-                `Telemetry input validated successfully for ${apId} at ${timestamp}. Write mutations to PostgreSQL will be enabled in Phase 6.`,
-                true
-            );
+                const res = await API.createReading(readingPayload);
+                showBanner(
+                    'READING RECORDED IN POSTGRESQL',
+                    `Successfully persisted reading #${res.data.reading_id} for ${res.data.access_point_id} at ${res.data.timestamp}.`,
+                    true
+                );
+
+                // Reset inputs and refresh audit counts
+                addReadingForm.reset();
+                document.getElementById('adminReadingIsUp').checked = true;
+                await loadAuditMetrics();
+
+            } catch (err) {
+                console.error('Error inserting reading:', err);
+                showBanner('DATABASE INSERTION FAILED', err.message, false);
+            }
         });
     }
 
-    // Input Validation for Managing Access Points
+    // Functionality: Manage Access Point Registry
     if (manageApForm) {
-        manageApForm.addEventListener('submit', (e) => {
+        manageApForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const apId = document.getElementById('adminNewApId').value.trim();
             const building = document.getElementById('adminNewBuilding').value.trim();
@@ -86,11 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            showBanner(
-                'HARDWARE REGISTRATION VALIDATED',
-                `Access Point profile for ${apId} in ${building} (${location}) is verified and ready for persistence. Write mutations will be enabled in Phase 6.`,
-                true
-            );
+            try {
+                const res = await API.updateAccessPoint(apId, { building, location });
+                showBanner(
+                    'HARDWARE REGISTRY UPDATED',
+                    `Access point ${res.data.access_point_id} updated: Building="${res.data.building}", Location="${res.data.location}".`,
+                    true
+                );
+                await loadAuditMetrics();
+            } catch (err) {
+                showBanner('UPDATE FAILED', err.message, false);
+            }
         });
     }
 

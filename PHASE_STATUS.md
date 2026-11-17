@@ -15,52 +15,66 @@ Repository: `https://github.com/HarshPatil725/campus-finder`
 | **Phase 3** | **Read-Only REST API Development** | **COMPLETED** | Modular Express routes and controllers created for Overview, Access Points, Network Readings, Incidents, and Analytics. All baseline values verified (12 APs, 4,032 readings, 20 incidents, 18 resolved, 2 unresolved, Library filter returning exactly 672 readings and 3 incidents). 33/33 automated tests passed. |
 | **Phase 4** | **Frontend UI Development** | **COMPLETED** | Built seven distinct HTML pages adhering strictly to the editorial design reference (`website-reference.png`). Implemented warm ivory palette (`#F2EDDF`), sharp rectangular borders (`0px`), large serif headings, monospaced navigation, orange accents (`#FF3D0A`), Bootstrap 5 responsiveness, Chart.js scaffolding, and loading/empty placeholders. All 7 views served via Express and verified (46/46 automated tests passed). |
 | **Phase 5** | **Frontend and Backend Integration** | **COMPLETED** | Connected all seven frontend views to live REST endpoints via centralized `public/js/api.js`. Live database telemetry rendered across all views with dynamic building filters, device drawers, Chart.js line and doughnut visualizations, incident correlation evidence, and audit metrics. Zero hardcoded mock arrays. 66/66 automated tests passed. |
-| **Phase 6** | Incident Management & Investigation Views | Pending | Awaiting Phase 6 instructions. |
+| **Phase 6** | **Incident Management and Data Entry** | **COMPLETED** | Implemented write operations (`POST /api/readings`, `POST /api/incidents`, `PATCH /api/incidents/:id`, `PATCH /api/access-points/:id`). Enforced database-level validation, transaction atomicity for incident resolution, dynamic UI form submissions, and persistence verification across application restarts. 74/74 automated tests passed. |
 | **Phase 7** | Reports, Analytics & Administration View | Pending | Awaiting Phase 7 instructions. |
 
 ---
 
-## Phase 5: Verification & Integration Artifacts
+## Phase 6: Verification & Write Operations Artifacts
 
-### 1. Created Client Modules & API Utility
-- **API Utility Client**: [public/js/api.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/api.js) (Encapsulates `fetch()` calls for overview, access points, readings, incidents, analytics, and health status, with formatting helpers `UIUtils`).
-- **Overview Controller**: [public/js/overview.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/overview.js) (Renders 6 live KPI stats, device latest health table, recent incidents, and dynamic building filtering).
-- **Access Points Controller**: [public/js/access-points.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/access-points.js) (Renders 12 hardware devices, debounced search, building and status filters, and device detail specification drawer).
-- **Performance Controller**: [public/js/performance.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/performance.js) (Renders Chart.js latency and packet-loss time-series curves with null latency handling, filter controls, and paginated telemetry table).
-- **Incidents Controller**: [public/js/incidents.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/incidents.js) (Renders incident master roster with status badges, building filters, search, and direct investigation navigation).
-- **Investigation Controller**: [public/js/investigation.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/investigation.js) (Renders incident dossier, operator disclaimer, and correlated ±2 hour network readings evidence).
-- **Analytics Controller**: [public/js/analytics.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/analytics.js) (Renders building comparative metrics, Chart.js health distribution doughnut, and horizontal suspected causes bar chart).
-- **Admin Controller**: [public/js/admin.js](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/public/js/admin.js) (Renders live database row counts and enforces client validation for Phase 6 write operations).
-
----
-
-### 2. UI Data Validation Against SQL Baseline
-
-| Metric / View | SQL Source | API Returned | UI Verified Value | Status |
-| :--- | :--- | :--- | :--- | :--- |
-| Overview Total APs | `access_points` | 12 | **12** | **PASS** |
-| Overview Healthy APs | `v_latest_access_point_status` | 10 | **10** | **PASS** |
-| Overview Degraded APs | `v_latest_access_point_status` | 1 (AP-11) | **1** | **PASS** |
-| Overview Down APs | `v_latest_access_point_status` | 1 (AP-03) | **1** | **PASS** |
-| Overview Total Incidents | `incidents` | 20 | **20** | **PASS** |
-| Overview Unresolved Incidents | `incidents` | 2 (INC-019, INC-020) | **2** | **PASS** |
-| Directory Access Points | `access_points` | 12 | **12 Devices** | **PASS** |
-| Performance Total Readings | `network_readings` | 4,032 | **4,032** | **PASS** |
-| Incidents Resolved Count | `incidents` | 18 | **18** | **PASS** |
-| Incidents Unresolved Count | `incidents` | 2 | **2** | **PASS** |
-| Academic Block APs & Incidents | `access_points`, `incidents` | 2 APs, 4 Incidents | **2 APs, 4 Incidents** | **PASS** |
-| Administration APs & Incidents | `access_points`, `incidents` | 2 APs, 3 Incidents | **2 APs, 3 Incidents** | **PASS** |
-| Computer Lab APs & Incidents | `access_points`, `incidents` | 2 APs, 4 Incidents | **2 APs, 4 Incidents** | **PASS** |
-| Hostel APs & Incidents | `access_points`, `incidents` | 2 APs, 3 Incidents | **2 APs, 3 Incidents** | **PASS** |
-| Library APs, Readings & Incidents| `access_points`, `incidents` | 2 APs, 672 Readings, 3 Inc | **2 APs, 672 Readings, 3 Inc**| **PASS** |
-| Seminar Hall APs & Incidents | `access_points`, `incidents` | 2 APs, 3 Incidents | **2 APs, 3 Incidents** | **PASS** |
+### 1. Implemented Write API Endpoints
+- **`POST /api/readings`**:
+  - Validates AP existence in `access_points`.
+  - Rejects negative latency (`400 Bad Request`).
+  - Rejects out-of-bounds packet loss (< 0 or > 100).
+  - Enforces `latency_ms = null` for offline devices (`is_up = false`).
+  - Persists new reading using PostgreSQL identity sequence.
+- **`POST /api/incidents`**:
+  - Auto-increments incident ID (`INC-021`, etc.) via SQL sequence query.
+  - Validates AP existence, start timestamp, status, and suspected cause.
+  - Enforces `end_time` and `resolution` constraints if status is `'Resolved'`.
+- **`PATCH /api/incidents/:id`**:
+  - Supports status lifecycle transitions: `Open` &rarr; `Investigating` &rarr; `Resolved`.
+  - Strictly requires `resolution` notes and `end_time` when transitioning to `Resolved`.
+  - Atomic database transactions (`BEGIN` ... `COMMIT` / `ROLLBACK`) for state integrity.
+- **`PATCH /api/access-points/:id`**:
+  - Allows administrators to update access point building assignment or location descriptions.
 
 ---
 
-### 3. Automated Test Suite Execution
+### 2. UI Write Functionality Binding
+- **Admin Page (`public/admin.html`)**:
+  - Telemetry entry form submits directly via `POST /api/readings`, validates client inputs, displays feedback alerts, and immediately updates live audit metrics.
+- **Incidents Page (`public/incidents.html`)**:
+  - Register incident modal captures operator reports, sends `POST /api/incidents`, closes cleanly, and refreshes the incident master roster.
+- **Investigation Page (`public/investigation.html`)**:
+  - Added dedicated **Update Incident & Resolution** card with status progression, cause refinement, end time recording, and resolution notes, executing `PATCH /api/incidents/:id`.
+
+---
+
+### 3. Exact Before-and-After Database Record Counts
+
+| Metric / Table | Baseline (Before Phase 6) | Final (After Phase 6 Write Operations) | Change Verified in PostgreSQL |
+| :--- | :--- | :--- | :--- |
+| **`access_points`** | **12** | **12** | Unchanged |
+| **`network_readings`** | **4,032** | **4,033** | **+1** (Reading `#4033` persisted for `AP-01`) |
+| **`incidents` (Total)** | **20** | **21** | **+1** (`INC-021` persisted for `AP-01`) |
+| **Resolved Incidents** | **18** | **19** | **+1** (`INC-021` resolved with resolution notes) |
+| **Unresolved Incidents**| **2** | **2** | Preserved (Historical `INC-019`, `INC-020`) |
+
+---
+
+### 4. Application Restart & Persistence Verification
+- Executed server teardown and cold restart on fresh port in `tests/write_ops.test.js`.
+- Verified that reading `#4033` and incident `INC-021` remain persistently stored in PostgreSQL without data loss.
+
+---
+
+### 5. Automated Test Suite Execution
 - Command: `npm test`
-- Pass Count: **66 passing assertions across 5 test suites**:
-  - `tests/integration.test.js` (Phase 5 Frontend & Backend API Integration)
+- Pass Count: **74 passing assertions across 6 test suites**:
+  - `tests/write_ops.test.js` (Phase 6 Write Operations, Validation & Lifecycle)
+  - `tests/integration.test.js` (Phase 5 Frontend & Backend Integration)
   - `tests/frontend.test.js` (Phase 4 HTML Views & Assets)
   - `tests/api.test.js` (Phase 3 REST APIs)
   - `tests/db.test.js` (Phase 1 Database Integrity)

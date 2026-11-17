@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { getReadings } = require('../controllers/readingController');
+const { getReadings, createReading } = require('../controllers/readingController');
 
 router.get('/', getReadings);
+router.post('/', createReading);
 
 module.exports = router;

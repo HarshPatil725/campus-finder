@@ -110,6 +110,74 @@ async function getReadings(req, res, next) {
     }
 }
 
+/**
+ * POST /api/readings
+ * Adds a new simulated network reading into PostgreSQL
+ */
+async function createReading(req, res, next) {
+    try {
+        const { access_point_id, timestamp, latency_ms, packet_loss_pct, is_up } = req.body;
+
+        // 1. Validate Access Point existence
+        if (!access_point_id) {
+            return res.status(400).json({ status: 'error', message: 'access_point_id is required' });
+        }
+        const apCheck = await query('SELECT access_point_id FROM access_points WHERE LOWER(access_point_id) = LOWER($1)', [access_point_id]);
+        if (apCheck.rows.length === 0) {
+            return res.status(400).json({ status: 'error', message: `Access point '${access_point_id}' does not exist.` });
+        }
+        const normalizedApId = apCheck.rows[0].access_point_id;
+
+        // 2. Validate Timestamp
+        if (!timestamp || isNaN(Date.parse(timestamp))) {
+            return res.status(400).json({ status: 'error', message: 'Valid timestamp is required.' });
+        }
+
+        // 3. Validate Availability (is_up)
+        const isUpBool = Boolean(is_up);
+
+        // 4. Validate Packet Loss (0 - 100)
+        const packetLoss = parseFloat(packet_loss_pct);
+        if (isNaN(packetLoss) || packetLoss < 0 || packetLoss > 100) {
+            return res.status(400).json({ status: 'error', message: 'Packet loss percentage must be between 0 and 100.' });
+        }
+
+        // 5. Validate Latency
+        let latency = null;
+        if (isUpBool) {
+            if (latency_ms !== null && latency_ms !== undefined && latency_ms !== '') {
+                latency = parseFloat(latency_ms);
+                if (isNaN(latency) || latency < 0) {
+                    return res.status(400).json({ status: 'error', message: 'Latency cannot be negative.' });
+                }
+            } else {
+                latency = 0.0;
+            }
+        } else {
+            // Down devices MUST have null latency
+            latency = null;
+        }
+
+        // 6. Insert reading into PostgreSQL
+        const insertSql = `
+            INSERT INTO network_readings (access_point_id, timestamp, latency_ms, packet_loss_pct, is_up)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING reading_id, access_point_id, timestamp, latency_ms, packet_loss_pct, is_up
+        `;
+        const insertRes = await query(insertSql, [normalizedApId, timestamp, latency, packetLoss, isUpBool]);
+        const newReading = insertRes.rows[0];
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Network reading recorded successfully',
+            data: newReading,
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     getReadings,
+    createReading,
 };

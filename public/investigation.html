@@ -115,12 +115,46 @@
                             </div>
                         </div>
                     </div>
-                    <div>
+                    <div class="mb-3">
                         <div class="kpi-label">RESOLUTION NOTES &amp; VERIFICATION</div>
                         <div class="p-3 bg-white border border-dark" id="invResolution">
                             Network parameters reviewed and stability verified.
                         </div>
                     </div>
+                </div>
+
+                <!-- Update Incident Actions Card -->
+                <div class="editorial-card">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-pencil-square me-2"></i>UPDATE INCIDENT &amp; RESOLUTION</span>
+                        <span class="mono-label text-muted">TRANSACTION PERSISTENCE</span>
+                    </div>
+                    <form id="updateIncidentForm">
+                        <div class="mb-3">
+                            <label for="updateStatusSelect" class="mono-label mb-1">Status Progression</label>
+                            <select id="updateStatusSelect" class="form-select-editorial" required>
+                                <option value="Open">Open</option>
+                                <option value="Investigating">Investigating</option>
+                                <option value="Resolved">Resolved</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="updateSuspectedCauseInput" class="mono-label mb-1">Suspected Cause</label>
+                            <input type="text" id="updateSuspectedCauseInput" class="form-control-editorial" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="updateEndTimeInput" class="mono-label mb-1">End Time (Required if Resolved)</label>
+                            <input type="text" id="updateEndTimeInput" class="form-control-editorial" placeholder="YYYY-MM-DD HH:MM">
+                        </div>
+                        <div class="mb-3">
+                            <label for="updateResolutionTextarea" class="mono-label mb-1">Resolution Notes (Required if Resolved)</label>
+                            <textarea id="updateResolutionTextarea" rows="3" class="form-control-editorial" placeholder="Document verified technical resolution steps..."></textarea>
+                        </div>
+                        <div id="invUpdateAlert" class="alert alert-success d-none py-2 px-3 small mono-label mb-3"></div>
+                        <button type="submit" class="btn-editorial btn-editorial-accent w-100 justify-content-center">
+                            PERSIST INCIDENT UPDATES
+                        </button>
+                    </form>
                 </div>
             </div>
 

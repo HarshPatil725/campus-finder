@@ -1,5 +1,5 @@
 /**
- * Page 5: Incident Investigation Controller
+ * Page 5: Incident Investigation Controller (Phase 6 Write Operations)
  */
 document.addEventListener('DOMContentLoaded', () => {
     const selectEl = document.getElementById('investigationSelect');
@@ -13,9 +13,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const invResolution = document.getElementById('invResolution');
     const readingsTableBody = document.getElementById('invReadingsTableBody');
 
+    // Update Form Elements
+    const updateForm = document.getElementById('updateIncidentForm');
+    const updateStatusSelect = document.getElementById('updateStatusSelect');
+    const updateSuspectedCauseInput = document.getElementById('updateSuspectedCauseInput');
+    const updateEndTimeInput = document.getElementById('updateEndTimeInput');
+    const updateResolutionTextarea = document.getElementById('updateResolutionTextarea');
+    const invUpdateAlert = document.getElementById('invUpdateAlert');
+
+    let currentIncident = null;
+
     // Read ?id= from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    const initialIncidentId = urlParams.get('id') || 'INC-001';
+    let currentIncidentId = urlParams.get('id') || 'INC-001';
 
     async function initializeDropdown() {
         try {
@@ -24,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (selectEl && incidents && incidents.length > 0) {
                 selectEl.innerHTML = incidents.map(inc => `
-                    <option value="${inc.incident_id}" ${inc.incident_id === initialIncidentId ? 'selected' : ''}>
+                    <option value="${inc.incident_id}" ${inc.incident_id === currentIncidentId ? 'selected' : ''}>
                         ${inc.incident_id} &bull; ${inc.access_point_id} (${inc.building}) &bull; [${inc.status}]
                     </option>
                 `).join('');
@@ -36,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadIncidentInvestigation(incidentId) {
         try {
+            currentIncidentId = incidentId;
             readingsTableBody.innerHTML = `
                 <tr>
                     <td colspan="6" class="state-placeholder py-4">
@@ -48,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const res = await API.getIncidentById(incidentId);
             const inc = res.data;
+            currentIncident = inc;
 
             invIncidentId.textContent = inc.incident_id;
             invStatusBadge.innerHTML = UIUtils.getStatusBadge(inc.status);
@@ -57,6 +69,12 @@ document.addEventListener('DOMContentLoaded', () => {
             invEndTime.textContent = `END: ${inc.end_time ? UIUtils.formatTimestamp(inc.end_time) : 'ONGOING / UNRESOLVED'}`;
             invSuspectedCause.textContent = inc.suspected_cause;
             invResolution.textContent = inc.resolution || 'Resolution pending. Incident remains open or actively undergoing investigation.';
+
+            // Populate update form inputs
+            if (updateStatusSelect) updateStatusSelect.value = inc.status;
+            if (updateSuspectedCauseInput) updateSuspectedCauseInput.value = inc.suspected_cause || '';
+            if (updateEndTimeInput) updateEndTimeInput.value = inc.end_time ? UIUtils.formatTimestamp(inc.end_time) : '';
+            if (updateResolutionTextarea) updateResolutionTextarea.value = inc.resolution || '';
 
             const readings = inc.related_readings || [];
 
@@ -86,10 +104,60 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Functionality 3: Update Incident & Resolution in PostgreSQL
+    if (updateForm) {
+        updateForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const newStatus = updateStatusSelect.value;
+            const newCause = updateSuspectedCauseInput.value.trim();
+            const newEndTime = updateEndTimeInput.value.trim();
+            const newResolution = updateResolutionTextarea.value.trim();
+
+            if (newStatus === 'Resolved') {
+                if (!newResolution) {
+                    alert('Resolution details are strictly required when marking an incident as Resolved.');
+                    return;
+                }
+                if (!newEndTime) {
+                    alert('End time is required when marking an incident as Resolved.');
+                    return;
+                }
+            }
+
+            try {
+                const payload = {
+                    status: newStatus,
+                    suspected_cause: newCause,
+                    end_time: newEndTime || null,
+                    resolution: newResolution || null,
+                };
+
+                const res = await API.updateIncident(currentIncidentId, payload);
+
+                if (invUpdateAlert) {
+                    invUpdateAlert.className = 'alert alert-success py-2 px-3 small mono-label mb-3';
+                    invUpdateAlert.textContent = `Incident ${res.data.incident_id} successfully updated to "${res.data.status}".`;
+                    invUpdateAlert.classList.remove('d-none');
+                }
+
+                // Refresh incident details and dropdown list
+                await loadIncidentInvestigation(currentIncidentId);
+                await initializeDropdown();
+
+            } catch (err) {
+                console.error('Error updating incident:', err);
+                if (invUpdateAlert) {
+                    invUpdateAlert.className = 'alert alert-danger py-2 px-3 small mono-label mb-3';
+                    invUpdateAlert.textContent = `Update failed: ${err.message}`;
+                    invUpdateAlert.classList.remove('d-none');
+                }
+            }
+        });
+    }
+
     if (selectEl) {
         selectEl.addEventListener('change', (e) => {
             const selectedId = e.target.value;
-            // Update URL without page reload
             history.pushState(null, '', `?id=${encodeURIComponent(selectedId)}`);
             loadIncidentInvestigation(selectedId);
         });
@@ -97,6 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize dropdown and load target incident
     initializeDropdown().then(() => {
-        loadIncidentInvestigation(initialIncidentId);
+        loadIncidentInvestigation(currentIncidentId);
     });
 });

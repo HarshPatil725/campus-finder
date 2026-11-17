@@ -6,7 +6,6 @@
 const API = {
     /**
      * Fetch system-wide or building-filtered overview KPIs and latest readings
-     * @param {string} building - Optional building name filter
      */
     async getOverview(building = '') {
         const query = building ? `?building=${encodeURIComponent(building)}` : '';
@@ -17,7 +16,6 @@ const API = {
 
     /**
      * Fetch access points with optional filters
-     * @param {Object} params - { building, search, status }
      */
     async getAccessPoints(params = {}) {
         const query = new URLSearchParams();
@@ -30,8 +28,7 @@ const API = {
     },
 
     /**
-     * Fetch individual access point details, incident history, and recent telemetry
-     * @param {string} id - Access Point ID (e.g. 'AP-01')
+     * Fetch individual access point details
      */
     async getAccessPointById(id) {
         const res = await fetch(`/api/access-points/${encodeURIComponent(id)}`);
@@ -41,7 +38,6 @@ const API = {
 
     /**
      * Fetch paginated and filtered network readings
-     * @param {Object} params - { access_point_id, building, start_date, end_date, status, page, limit, sort }
      */
     async getReadings(params = {}) {
         const query = new URLSearchParams();
@@ -56,8 +52,21 @@ const API = {
     },
 
     /**
+     * POST /api/readings: Add new simulated network reading
+     */
+    async createReading(readingData) {
+        const res = await fetch('/api/readings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(readingData),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || `Failed to create reading: ${res.statusText}`);
+        return json;
+    },
+
+    /**
      * Fetch incidents with optional filters
-     * @param {Object} params - { status, building, access_point_id, search }
      */
     async getIncidents(params = {}) {
         const query = new URLSearchParams();
@@ -73,12 +82,53 @@ const API = {
 
     /**
      * Fetch individual incident details with ±2hr correlated telemetry readings evidence
-     * @param {string} id - Incident ID (e.g. 'INC-001')
      */
     async getIncidentById(id) {
         const res = await fetch(`/api/incidents/${encodeURIComponent(id)}`);
         if (!res.ok) throw new Error(`Failed to fetch incident ${id}: ${res.statusText}`);
         return await res.json();
+    },
+
+    /**
+     * POST /api/incidents: Register new incident
+     */
+    async createIncident(incidentData) {
+        const res = await fetch('/api/incidents', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(incidentData),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || `Failed to register incident: ${res.statusText}`);
+        return json;
+    },
+
+    /**
+     * PATCH /api/incidents/:id: Update status, suspected cause, resolution, end time
+     */
+    async updateIncident(id, updateData) {
+        const res = await fetch(`/api/incidents/${encodeURIComponent(id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || `Failed to update incident: ${res.statusText}`);
+        return json;
+    },
+
+    /**
+     * PATCH /api/access-points/:id: Update access point building or location
+     */
+    async updateAccessPoint(id, updateData) {
+        const res = await fetch(`/api/access-points/${encodeURIComponent(id)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updateData),
+        });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message || `Failed to update access point: ${res.statusText}`);
+        return json;
     },
 
     /**

@@ -1,4 +1,4 @@
-const { query } = require('../config/database');
+const { query, getClient } = require('../config/database');
 
 /**
  * GET /api/incidents
@@ -110,7 +110,6 @@ async function getIncidentById(req, res, next) {
         const incident = incRes.rows[0];
 
         // Fetch related network readings for the affected device surrounding the incident window
-        // (Window: 2 hours before start_time up to 2 hours after end_time, or latest readings if unresolved)
         const readingsSql = `
             SELECT
                 r.reading_id,
@@ -145,7 +144,183 @@ async function getIncidentById(req, res, next) {
     }
 }
 
+/**
+ * POST /api/incidents
+ * Registers a new incident into PostgreSQL
+ */
+async function createIncident(req, res, next) {
+    try {
+        let { incident_id, access_point_id, start_time, end_time, status = 'Open', suspected_cause, resolution } = req.body;
+
+        // 1. Generate Incident ID if not provided
+        if (!incident_id) {
+            const maxIdRes = await query(`
+                SELECT COALESCE(MAX(CAST(SUBSTRING(incident_id FROM 5) AS INTEGER)), 0) AS max_num
+                FROM incidents
+                WHERE incident_id ~ '^INC-[0-9]+$'
+            `);
+            const nextNum = parseInt(maxIdRes.rows[0].max_num, 10) + 1;
+            incident_id = `INC-${String(nextNum).padStart(3, '0')}`;
+        }
+
+        // 2. Validate Access Point
+        if (!access_point_id) {
+            return res.status(400).json({ status: 'error', message: 'access_point_id is required' });
+        }
+        const apCheck = await query('SELECT access_point_id FROM access_points WHERE LOWER(access_point_id) = LOWER($1)', [access_point_id]);
+        if (apCheck.rows.length === 0) {
+            return res.status(400).json({ status: 'error', message: `Access point '${access_point_id}' does not exist.` });
+        }
+        const normalizedApId = apCheck.rows[0].access_point_id;
+
+        // 3. Validate Start Time
+        if (!start_time || isNaN(Date.parse(start_time))) {
+            return res.status(400).json({ status: 'error', message: 'Valid start_time is required.' });
+        }
+
+        // 4. Validate Status
+        const validStatuses = ['Open', 'Investigating', 'Resolved'];
+        if (!validStatuses.includes(status)) {
+            return res.status(400).json({ status: 'error', message: `Status must be one of: ${validStatuses.join(', ')}` });
+        }
+
+        // 5. Validate Suspected Cause
+        if (!suspected_cause || !suspected_cause.trim()) {
+            return res.status(400).json({ status: 'error', message: 'suspected_cause is required.' });
+        }
+
+        // 6. Enforce chk_incidents_resolved_details constraint
+        let finalEndTime = end_time ? end_time : null;
+        let finalResolution = resolution ? resolution.trim() : null;
+
+        if (status === 'Resolved') {
+            if (!finalResolution) {
+                return res.status(400).json({ status: 'error', message: 'Resolution details are required when incident status is Resolved.' });
+            }
+            if (!finalEndTime) {
+                return res.status(400).json({ status: 'error', message: 'End time is required when incident status is Resolved.' });
+            }
+            if (new Date(finalEndTime) < new Date(start_time)) {
+                return res.status(400).json({ status: 'error', message: 'End time cannot precede start time.' });
+            }
+        }
+
+        // 7. Insert into PostgreSQL
+        const insertSql = `
+            INSERT INTO incidents (incident_id, access_point_id, start_time, end_time, status, suspected_cause, resolution)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING *
+        `;
+        const insertRes = await query(insertSql, [
+            incident_id,
+            normalizedApId,
+            start_time,
+            finalEndTime,
+            status,
+            suspected_cause.trim(),
+            finalResolution,
+        ]);
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Incident registered successfully',
+            data: insertRes.rows[0],
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+/**
+ * PATCH /api/incidents/:id
+ * Updates an existing incident with transaction atomicity
+ */
+async function updateIncident(req, res, next) {
+    const client = await getClient();
+    try {
+        const { id } = req.params;
+        const { status, suspected_cause, resolution, end_time } = req.body;
+
+        await client.query('BEGIN');
+
+        // Fetch existing record
+        const findSql = 'SELECT * FROM incidents WHERE LOWER(incident_id) = LOWER($1) FOR UPDATE';
+        const findRes = await client.query(findSql, [id]);
+
+        if (findRes.rows.length === 0) {
+            await client.query('ROLLBACK');
+            return res.status(404).json({ status: 'error', message: `Incident '${id}' not found.` });
+        }
+
+        const current = findRes.rows[0];
+
+        // Determine updated values
+        const newStatus = status !== undefined ? status : current.status;
+        const newCause = suspected_cause !== undefined ? suspected_cause.trim() : current.suspected_cause;
+        let newResolution = resolution !== undefined ? (resolution ? resolution.trim() : null) : current.resolution;
+        let newEndTime = end_time !== undefined ? (end_time ? end_time : null) : current.end_time;
+
+        // Validation for status change to Resolved
+        if (newStatus === 'Resolved') {
+            if (!newResolution) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Resolution details are strictly required when resolving an incident.'
+                });
+            }
+            if (!newEndTime) {
+                // Default to current timestamp if not explicitly supplied
+                newEndTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
+            }
+            if (new Date(newEndTime) < new Date(current.start_time)) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Incident end time cannot precede start time.'
+                });
+            }
+        }
+
+        // Validate status domain
+        const validStatuses = ['Open', 'Investigating', 'Resolved'];
+        if (!validStatuses.includes(newStatus)) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ status: 'error', message: `Invalid status: ${newStatus}` });
+        }
+
+        const updateSql = `
+            UPDATE incidents
+            SET status = $1, suspected_cause = $2, resolution = $3, end_time = $4
+            WHERE incident_id = $5
+            RETURNING *
+        `;
+        const updateRes = await client.query(updateSql, [
+            newStatus,
+            newCause,
+            newResolution,
+            newEndTime,
+            current.incident_id,
+        ]);
+
+        await client.query('COMMIT');
+
+        res.status(200).json({
+            status: 'success',
+            message: 'Incident updated successfully',
+            data: updateRes.rows[0],
+        });
+    } catch (err) {
+        await client.query('ROLLBACK');
+        next(err);
+    } finally {
+        client.release();
+    }
+}
+
 module.exports = {
     getAllIncidents,
     getIncidentById,
+    createIncident,
+    updateIncident,
 };
