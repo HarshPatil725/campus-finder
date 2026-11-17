@@ -35,6 +35,13 @@ app.get('/api/health', async (req, res) => {
     }
 });
 
+// API Routes
+app.use('/api/overview', require('./routes/overviewRoutes'));
+app.use('/api/access-points', require('./routes/accessPointRoutes'));
+app.use('/api/readings', require('./routes/readingRoutes'));
+app.use('/api/incidents', require('./routes/incidentRoutes'));
+app.use('/api/analytics', require('./routes/analyticsRoutes'));
+
 // 404 Handler for undefined API routes
 app.all('/api/*', (req, res) => {
     res.status(404).json({
