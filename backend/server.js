@@ -4,14 +4,30 @@ const path = require('path');
 const cors = require('cors');
 const { query } = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
+const { sessionContext } = require('./middleware/auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Security: HTTP Response Headers
+app.use((req, res, next) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=()');
+    res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net data:; img-src 'self' data:; connect-src 'self';"
+    );
+    next();
+});
+
+// Middleware & Request Size Limits
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+app.use(sessionContext);
 
 // Serve static frontend assets from public/ folder (same origin)
 app.use(express.static(path.join(__dirname, '../public')));
@@ -36,6 +52,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // API Routes
+app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/overview', require('./routes/overviewRoutes'));
 app.use('/api/access-points', require('./routes/accessPointRoutes'));
 app.use('/api/readings', require('./routes/readingRoutes'));

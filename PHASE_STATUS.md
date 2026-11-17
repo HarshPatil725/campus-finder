@@ -16,66 +16,73 @@ Repository: `https://github.com/HarshPatil725/campus-finder`
 | **Phase 4** | **Frontend UI Development** | **COMPLETED** | Built seven distinct HTML pages adhering strictly to the editorial design reference (`website-reference.png`). Implemented warm ivory palette (`#F2EDDF`), sharp rectangular borders (`0px`), large serif headings, monospaced navigation, orange accents (`#FF3D0A`), Bootstrap 5 responsiveness, Chart.js scaffolding, and loading/empty placeholders. All 7 views served via Express and verified (46/46 automated tests passed). |
 | **Phase 5** | **Frontend and Backend Integration** | **COMPLETED** | Connected all seven frontend views to live REST endpoints via centralized `public/js/api.js`. Live database telemetry rendered across all views with dynamic building filters, device drawers, Chart.js line and doughnut visualizations, incident correlation evidence, and audit metrics. Zero hardcoded mock arrays. 66/66 automated tests passed. |
 | **Phase 6** | **Incident Management and Data Entry** | **COMPLETED** | Implemented write operations (`POST /api/readings`, `POST /api/incidents`, `PATCH /api/incidents/:id`, `PATCH /api/access-points/:id`). Enforced database-level validation, transaction atomicity for incident resolution, dynamic UI form submissions, and persistence verification across application restarts. 74/74 automated tests passed. |
-| **Phase 7** | Reports, Analytics & Administration View | Pending | Awaiting Phase 7 instructions. |
+| **Phase 7** | **System Testing and Security** | **COMPLETED** | Full system testing across database integrity, backend resilience, frontend structure, and end-to-end operational workflows. Hardened security with HTTP headers, request size limits, timing-safe scrypt authentication, server-side sessions, and parameterized SQL queries. 99/99 automated tests passed. |
 
 ---
 
-## Phase 6: Verification & Write Operations Artifacts
+## Phase 7: Verification & Security Hardening Artifacts
 
-### 1. Implemented Write API Endpoints
-- **`POST /api/readings`**:
-  - Validates AP existence in `access_points`.
-  - Rejects negative latency (`400 Bad Request`).
-  - Rejects out-of-bounds packet loss (< 0 or > 100).
-  - Enforces `latency_ms = null` for offline devices (`is_up = false`).
-  - Persists new reading using PostgreSQL identity sequence.
-- **`POST /api/incidents`**:
-  - Auto-increments incident ID (`INC-021`, etc.) via SQL sequence query.
-  - Validates AP existence, start timestamp, status, and suspected cause.
-  - Enforces `end_time` and `resolution` constraints if status is `'Resolved'`.
-- **`PATCH /api/incidents/:id`**:
-  - Supports status lifecycle transitions: `Open` &rarr; `Investigating` &rarr; `Resolved`.
-  - Strictly requires `resolution` notes and `end_time` when transitioning to `Resolved`.
-  - Atomic database transactions (`BEGIN` ... `COMMIT` / `ROLLBACK`) for state integrity.
-- **`PATCH /api/access-points/:id`**:
-  - Allows administrators to update access point building assignment or location descriptions.
-
----
-
-### 2. UI Write Functionality Binding
-- **Admin Page (`public/admin.html`)**:
-  - Telemetry entry form submits directly via `POST /api/readings`, validates client inputs, displays feedback alerts, and immediately updates live audit metrics.
-- **Incidents Page (`public/incidents.html`)**:
-  - Register incident modal captures operator reports, sends `POST /api/incidents`, closes cleanly, and refreshes the incident master roster.
-- **Investigation Page (`public/investigation.html`)**:
-  - Added dedicated **Update Incident & Resolution** card with status progression, cause refinement, end time recording, and resolution notes, executing `PATCH /api/incidents/:id`.
+### 1. Security Architecture Implementation
+- **HTTP Security Headers**:
+  - `X-Content-Type-Options: nosniff` (MIME sniffing prevention)
+  - `X-Frame-Options: DENY` (Clickjacking prevention)
+  - `X-XSS-Protection: 1; mode=block` (Reflected XSS filter)
+  - `Referrer-Policy: strict-origin-when-cross-origin`
+  - `Permissions-Policy: geolocation=(), camera=(), microphone=()`
+  - `Content-Security-Policy`: Explicit source policies allowing only origin and approved CDNs (Google Fonts, jsDelivr Bootstrap 5 & Chart.js).
+- **Request Size Limits**:
+  - Strict payload limits (`100kb`) on `express.json()` and `express.urlencoded()`. Oversized payloads rejected with `413 Payload Too Large`.
+- **SQL Injection Immunity**:
+  - All query parameters sanitized through PostgreSQL parameterized tokens (`$1, $2, ...`).
+  - Tested against `' OR '1'='1`, `'; DROP TABLE ...`, `UNION SELECT`, and query stacking payloads with zero data corruption or syntax leakage.
+- **Administrator Authentication & Server-Side Sessions**:
+  - Password hashing via `crypto.scryptSync` with cryptographic salt.
+  - Constant-time password comparison (`crypto.timingSafeEqual`) to prevent timing attacks.
+  - Server-side cryptographic session store (`Map` with TTL expiration) and cookie enforcement (`HttpOnly; SameSite=Strict`).
+  - Endpoints: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/session`.
+  - Configurable authorization middleware (`requireAdmin`) supporting both seamless local development and production lockdown via `REQUIRE_AUTH=true`.
 
 ---
 
-### 3. Exact Before-and-After Database Record Counts
+### 2. Comprehensive Test Suite Breakdown
 
-| Metric / Table | Baseline (Before Phase 6) | Final (After Phase 6 Write Operations) | Change Verified in PostgreSQL |
-| :--- | :--- | :--- | :--- |
+Command: `npm test` (`node --test 'tests/*.test.js'`)  
+Results: **99 passing tests across 7 test suites (0 failures)**
+
+1. `tests/system_and_security.test.js`:
+   - Primary key uniqueness constraint enforcement.
+   - Foreign key constraint rejection on invalid access points.
+   - NOT NULL column constraint enforcement.
+   - CHECK constraints on latency (non-negative) and packet loss (`0–100%`).
+   - Secure HTTP response headers presence.
+   - Malformed JSON handling (`400 Bad Request` without crash).
+   - Payload limit enforcement (`413 Payload Too Large`).
+   - SQL injection attack payload neutralization across all query parameters.
+   - Non-existent resource ID handling (`404 Not Found`).
+   - Administrator authentication & server-side session lifecycle.
+   - Complete 7-page navigation structure & Bootstrap 5 responsive layout.
+   - Full End-to-End workflow (Add Reading &rarr; Incident &rarr; Investigate &rarr; Update &rarr; Resolve &rarr; Persistence &rarr; Cleanup).
+2. `tests/write_ops.test.js`: Phase 6 write operations, validation, and lifecycle transitions.
+3. `tests/integration.test.js`: Phase 5 frontend/backend API integration.
+4. `tests/frontend.test.js`: Phase 4 HTML view structure and design assets.
+5. `tests/api.test.js`: Phase 3 read-only REST endpoints.
+6. `tests/db.test.js`: Phase 1 PostgreSQL schema integrity and analytical views.
+7. `tests/server.test.js`: Phase 2 Express foundation and database health check.
+
+---
+
+### 3. Exact Database Record Counts
+
+| Metric / Table | Baseline | Final State | Status |
+| :--- | :---: | :---: | :---: |
 | **`access_points`** | **12** | **12** | Unchanged |
-| **`network_readings`** | **4,032** | **4,033** | **+1** (Reading `#4033` persisted for `AP-01`) |
-| **`incidents` (Total)** | **20** | **21** | **+1** (`INC-021` persisted for `AP-01`) |
-| **Resolved Incidents** | **18** | **19** | **+1** (`INC-021` resolved with resolution notes) |
-| **Unresolved Incidents**| **2** | **2** | Preserved (Historical `INC-019`, `INC-020`) |
+| **`network_readings`** | **4,032** | **4,033** | Verified (+1 reading #4033) |
+| **`incidents` (Total)** | **20** | **21** | Verified (+1 incident INC-021) |
+| **Resolved Incidents** | **18** | **19** | Verified |
+| **Unresolved Incidents**| **2** | **2** | Preserved (INC-019, INC-020) |
+| **Foreign Key Orphans**| **0** | **0** | Integrity Intact |
 
 ---
 
-### 4. Application Restart & Persistence Verification
-- Executed server teardown and cold restart on fresh port in `tests/write_ops.test.js`.
-- Verified that reading `#4033` and incident `INC-021` remain persistently stored in PostgreSQL without data loss.
-
----
-
-### 5. Automated Test Suite Execution
-- Command: `npm test`
-- Pass Count: **74 passing assertions across 6 test suites**:
-  - `tests/write_ops.test.js` (Phase 6 Write Operations, Validation & Lifecycle)
-  - `tests/integration.test.js` (Phase 5 Frontend & Backend Integration)
-  - `tests/frontend.test.js` (Phase 4 HTML Views & Assets)
-  - `tests/api.test.js` (Phase 3 REST APIs)
-  - `tests/db.test.js` (Phase 1 Database Integrity)
-  - `tests/server.test.js` (Phase 2 Server & Health Check)
+### 4. Phase 7 Test Results Document
+Full test case specifications, inputs, expected outputs, actual outputs, and pass/fail statuses are documented in [TEST_RESULTS.md](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/TEST_RESULTS.md).

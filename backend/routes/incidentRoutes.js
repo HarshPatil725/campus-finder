@@ -6,10 +6,11 @@ const {
     createIncident,
     updateIncident,
 } = require('../controllers/incidentController');
+const { requireAdmin } = require('../middleware/auth');
 
 router.get('/', getAllIncidents);
 router.get('/:id', getIncidentById);
-router.post('/', createIncident);
-router.patch('/:id', updateIncident);
+router.post('/', requireAdmin, createIncident);
+router.patch('/:id', requireAdmin, updateIncident);
 
 module.exports = router;
