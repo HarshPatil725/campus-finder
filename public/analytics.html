@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Wi-Fi | Reports &amp; Analytics</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <!-- Custom Editorial Design System -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Top Utility Bar -->
+    <div class="top-notice-bar">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="indicator-badge">
+                    <span class="indicator-dot"></span> SIMULATED NETWORK DATA &mdash; NOV 1&ndash;14, 2026
+                </span>
+            </div>
+            <div class="d-none d-md-block text-muted">
+                AGGREGATED ANALYTICS &bull; 6 CAMPUS ZONES
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid px-4 p-0">
+            <a class="brand-title" href="/index.html">
+                CAMPUS <span>/</span> WI-FI
+            </a>
+            <button class="navbar-toggler border-0 p-3" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-dark"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link-custom" href="/index.html">Overview</a>
+                    <a class="nav-link-custom" href="/access-points.html">Access Points</a>
+                    <a class="nav-link-custom" href="/performance.html">Performance</a>
+                    <a class="nav-link-custom" href="/incidents.html">Incidents</a>
+                    <a class="nav-link-custom" href="/investigation.html">Investigation</a>
+                    <a class="nav-link-custom active" href="/analytics.html">Analytics</a>
+                    <a class="nav-link-custom" href="/admin.html">Admin</a>
+                </div>
+                <div>
+                    <a href="#powerBiSection" class="cta-button-nav">
+                        EXTERNAL BI REPORT <i class="bi bi-box-arrow-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="page-container">
+        <!-- Header Box -->
+        <div class="page-header-box d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+            <div>
+                <div class="editorial-sub mb-2">SYSTEM AUDIT &bull; PAGE 06</div>
+                <h1 class="editorial-giant mb-1">REPORTS &amp; ANALYTICS</h1>
+                <p class="text-muted mb-0">Cross-building infrastructure metrics, failure modes, and health distribution summaries.</p>
+            </div>
+            <div class="mono-label text-muted">
+                4,032 TOTAL TELEMETRY SAMPLES &bull; 20 RECORDED INCIDENTS
+            </div>
+        </div>
+
+        <!-- Top Statistical Highlights -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">TOTAL READINGS</div>
+                    <div class="kpi-value">4,032</div>
+                    <div class="mono-label text-muted mt-2">100% Ingested</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">OVERALL HEALTH RATE</div>
+                    <div class="kpi-value healthy">98.4%</div>
+                    <div class="mono-label text-muted mt-2">3,966 Healthy Readings</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">DEGRADED RATE</div>
+                    <div class="kpi-value degraded">1.1%</div>
+                    <div class="mono-label text-muted mt-2">45 Degraded Readings</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-label">INCIDENT RESOLUTION</div>
+                    <div class="kpi-value">90.0%</div>
+                    <div class="mono-label text-muted mt-2">18 of 20 Resolved</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <!-- Health Distribution Chart -->
+            <div class="col-lg-6">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-pie-chart me-2"></i>OVERALL HEALTH DISTRIBUTION</span>
+                        <span class="mono-label text-muted">ALL READINGS</span>
+                    </div>
+                    <div style="min-height: 260px; position: relative;">
+                        <canvas id="healthPieChart"></canvas>
+                        <div id="healthChartPlaceholder" class="state-placeholder position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center">
+                            <div class="state-placeholder-icon"><i class="bi bi-pie-chart"></i></div>
+                            <div class="state-placeholder-title">Health Distribution Chart</div>
+                            <div class="state-placeholder-text">Rendering 3,966 Healthy / 45 Degraded / 21 Down</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suspected Causes Breakdown Chart -->
+            <div class="col-lg-6">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-bar-chart-steps me-2"></i>INCIDENTS BY SUSPECTED CAUSE</span>
+                        <span class="mono-label text-muted">20 INCIDENTS</span>
+                    </div>
+                    <div style="min-height: 260px; position: relative;">
+                        <canvas id="causesBarChart"></canvas>
+                        <div id="causesChartPlaceholder" class="state-placeholder position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center">
+                            <div class="state-placeholder-icon"><i class="bi bi-bar-chart"></i></div>
+                            <div class="state-placeholder-title">Suspected Cause Frequencies</div>
+                            <div class="state-placeholder-text">High client load, congestion, interference...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Building Comparison Table -->
+        <div class="editorial-card p-0 mb-4">
+            <div class="p-3 border-bottom border-dark d-flex justify-content-between align-items-center">
+                <span class="mono-label fw-bold"><i class="bi bi-building me-2"></i>BUILDING-WISE PERFORMANCE METRICS</span>
+                <span class="mono-label text-muted">6 CAMPUS BUILDINGS</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table-editorial mb-0">
+                    <thead>
+                        <tr>
+                            <th>BUILDING</th>
+                            <th>ACCESS POINTS</th>
+                            <th>TOTAL READINGS</th>
+                            <th>AVG LATENCY</th>
+                            <th>AVG PACKET LOSS</th>
+                            <th>DEGRADED SAMPLES</th>
+                            <th>DOWN SAMPLES</th>
+                            <th>INCIDENTS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="analyticsBuildingTableBody">
+                        <tr>
+                            <td colspan="8" class="state-placeholder">
+                                <div class="state-placeholder-icon"><i class="bi bi-diagram-3"></i></div>
+                                <div class="state-placeholder-title">Building Comparisons</div>
+                                <div class="state-placeholder-text">Aggregating /api/analytics/summary...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Optional External Power BI Report Link Card -->
+        <div class="editorial-card" id="powerBiSection">
+            <div class="editorial-card-header">
+                <span><i class="bi bi-clipboard-data me-2"></i>EXTERNAL POWER BI DASHBOARD</span>
+                <span class="mono-label text-muted">TEAM SEPARATION NOTICE</span>
+            </div>
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <p class="mb-2">
+                        Institutional Power BI executive reports and dashboards are maintained separately by other project team members.
+                    </p>
+                    <p class="text-muted small mb-0">
+                        When an external Power BI report link is published for this semester project, it can be launched directly through the link below:
+                    </p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <a href="javascript:alert('External Power BI report URL will be attached once published by the analytics team member.');" class="btn-editorial btn-editorial-outline">
+                        OPEN POWER BI REPORT <i class="bi bi-box-arrow-up-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="footer-editorial">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <strong>CAMPUS / WI-FI MONITORING AND INCIDENT MANAGEMENT SYSTEM</strong><br>
+                    <span class="text-muted">Simulated Historical Dataset (Nov 1&ndash;14, 2026) &bull; Prototype Implementation</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/index.html" class="footer-link me-3">Overview</a>
+                    <a href="/access-points.html" class="footer-link me-3">Directory</a>
+                    <a href="/performance.html" class="footer-link me-3">Performance</a>
+                    <a href="/incidents.html" class="footer-link me-3">Incidents</a>
+                    <a href="/investigation.html" class="footer-link me-3">Investigation</a>
+                    <a href="/analytics.html" class="footer-link me-3">Analytics</a>
+                    <a href="/admin.html" class="footer-link">Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle JS & Common Layout Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/layout.js"></script>
+</body>
+</html>

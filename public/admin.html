@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Wi-Fi | System Administration</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Editorial Design System -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Top Utility Bar -->
+    <div class="top-notice-bar">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="indicator-badge">
+                    <span class="indicator-dot"></span> SIMULATED NETWORK DATA &mdash; NOV 1&ndash;14, 2026
+                </span>
+            </div>
+            <div class="d-none d-md-block text-muted">
+                ADMINISTRATION &bull; DATA ENTRY &amp; INTEGRITY CONTROLS
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid px-4 p-0">
+            <a class="brand-title" href="/index.html">
+                CAMPUS <span>/</span> WI-FI
+            </a>
+            <button class="navbar-toggler border-0 p-3" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-dark"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link-custom" href="/index.html">Overview</a>
+                    <a class="nav-link-custom" href="/access-points.html">Access Points</a>
+                    <a class="nav-link-custom" href="/performance.html">Performance</a>
+                    <a class="nav-link-custom" href="/incidents.html">Incidents</a>
+                    <a class="nav-link-custom" href="/investigation.html">Investigation</a>
+                    <a class="nav-link-custom" href="/analytics.html">Analytics</a>
+                    <a class="nav-link-custom active" href="/admin.html">Admin</a>
+                </div>
+                <div>
+                    <a href="/index.html" class="cta-button-nav">
+                        VIEW DASHBOARD <i class="bi bi-speedometer2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="page-container">
+        <!-- Header Box -->
+        <div class="page-header-box d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+            <div>
+                <div class="editorial-sub mb-2">SYSTEM CONTROLS &bull; PAGE 07</div>
+                <h1 class="editorial-giant mb-1">ADMINISTRATION</h1>
+                <p class="text-muted mb-0">Input simulated telemetry readings, manage access point hardware, and review database integrity.</p>
+            </div>
+            <div>
+                <span class="status-pill status-healthy"><i class="bi bi-check-circle me-1"></i>POSTGRESQL CONNECTED</span>
+            </div>
+        </div>
+
+        <!-- System Audit Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <div class="kpi-label">ACCESS POINTS ROW COUNT</div>
+                    <div class="kpi-value">12</div>
+                    <div class="mono-label text-muted mt-2">6 Campus Buildings</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <div class="kpi-label">TELEMETRY ROW COUNT</div>
+                    <div class="kpi-value">4,032</div>
+                    <div class="mono-label text-muted mt-2">14-Day Baseline Window</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="kpi-card">
+                    <div class="kpi-label">INCIDENTS ROW COUNT</div>
+                    <div class="kpi-value">20</div>
+                    <div class="mono-label text-muted mt-2">18 Resolved / 2 Ongoing</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notification / Operation Status Banner Placeholder -->
+        <div id="operationAlert" class="alert alert-light border border-dark mb-4 py-3 px-4 d-none">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <strong id="operationAlertTitle">OPERATION STATUS</strong>
+                    <div class="small text-muted" id="operationAlertMsg">Operation result details will appear here.</div>
+                </div>
+                <button type="button" class="btn-close" onclick="document.getElementById('operationAlert').classList.add('d-none')"></button>
+            </div>
+        </div>
+
+        <!-- Form Grids -->
+        <div class="row g-4">
+            <!-- Form 1: Add Simulated Network Reading -->
+            <div class="col-lg-6">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-plus-circle me-2"></i>ENTER SIMULATED NETWORK READING</span>
+                        <span class="mono-label text-muted">REST API / SQL</span>
+                    </div>
+                    <form id="addReadingForm">
+                        <div class="mb-3">
+                            <label for="adminApSelect" class="mono-label mb-1">Target Access Point</label>
+                            <select id="adminApSelect" class="form-select-editorial" required>
+                                <option value="">Select Target AP...</option>
+                                <option value="AP-01">AP-01 &bull; Library (Ground Floor)</option>
+                                <option value="AP-02">AP-02 &bull; Library (First Floor)</option>
+                                <option value="AP-03">AP-03 &bull; Computer Lab (Lab A)</option>
+                                <option value="AP-04">AP-04 &bull; Computer Lab (Lab B)</option>
+                                <option value="AP-05">AP-05 &bull; Academic Block (Floor 1)</option>
+                                <option value="AP-06">AP-06 &bull; Academic Block (Floor 2)</option>
+                                <option value="AP-07">AP-07 &bull; Administration (Reception)</option>
+                                <option value="AP-08">AP-08 &bull; Administration (Staff Wing)</option>
+                                <option value="AP-09">AP-09 &bull; Hostel (East Wing)</option>
+                                <option value="AP-10">AP-10 &bull; Hostel (West Wing)</option>
+                                <option value="AP-11">AP-11 &bull; Seminar Hall (Main Hall)</option>
+                                <option value="AP-12">AP-12 &bull; Seminar Hall (Backstage)</option>
+                            </select>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="adminReadingTimestamp" class="mono-label mb-1">Timestamp</label>
+                                <input type="text" id="adminReadingTimestamp" class="form-control-editorial" placeholder="2026-11-15 00:00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="adminReadingLatency" class="mono-label mb-1">Latency (ms)</label>
+                                <input type="number" step="0.1" min="0" id="adminReadingLatency" class="form-control-editorial" placeholder="e.g. 45.2 (Null if Down)">
+                            </div>
+                        </div>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label for="adminReadingPacketLoss" class="mono-label mb-1">Packet Loss (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" id="adminReadingPacketLoss" class="form-control-editorial" placeholder="e.g. 1.5" required>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-check p-2 border border-dark w-100 bg-white">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" id="adminReadingIsUp" checked>
+                                    <label class="form-check-label mono-label fw-bold" for="adminReadingIsUp">
+                                        Device Is Online (is_up)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn-editorial btn-editorial-accent">SUBMIT TELEMETRY READING</button>
+                            <button type="reset" class="btn-editorial btn-editorial-outline">RESET</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Form 2: Manage Access Point Registry -->
+            <div class="col-lg-6">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-gear me-2"></i>ACCESS POINT HARDWARE REGISTRY</span>
+                        <span class="mono-label text-muted">DATABASE / CSV COMPATIBLE</span>
+                    </div>
+                    <form id="manageApForm">
+                        <div class="mb-3">
+                            <label for="adminNewApId" class="mono-label mb-1">Access Point ID</label>
+                            <input type="text" id="adminNewApId" class="form-control-editorial" placeholder="e.g. AP-13" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="adminNewBuilding" class="mono-label mb-1">Building Name</label>
+                            <input type="text" id="adminNewBuilding" class="form-control-editorial" placeholder="e.g. Research Complex" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="adminNewLocation" class="mono-label mb-1">Location / Room Description</label>
+                            <input type="text" id="adminNewLocation" class="form-control-editorial" placeholder="e.g. Room 302, 3rd Floor" required>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn-editorial">REGISTER / UPDATE ACCESS POINT</button>
+                            <button type="reset" class="btn-editorial btn-editorial-outline">CLEAR</button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+                    <div class="p-3 bg-white border border-dark">
+                        <div class="kpi-label">DATASET PROTOCOL ENFORCEMENT</div>
+                        <p class="small text-muted mb-0">
+                            The synthetic baseline dataset represents historical monitoring records from November 1&ndash;14, 2026. Data modifications strictly uphold foreign key constraints and identity sequences.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="footer-editorial">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <strong>CAMPUS / WI-FI MONITORING AND INCIDENT MANAGEMENT SYSTEM</strong><br>
+                    <span class="text-muted">Simulated Historical Dataset (Nov 1&ndash;14, 2026) &bull; Prototype Implementation</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/index.html" class="footer-link me-3">Overview</a>
+                    <a href="/access-points.html" class="footer-link me-3">Directory</a>
+                    <a href="/performance.html" class="footer-link me-3">Performance</a>
+                    <a href="/incidents.html" class="footer-link me-3">Incidents</a>
+                    <a href="/investigation.html" class="footer-link me-3">Investigation</a>
+                    <a href="/analytics.html" class="footer-link me-3">Analytics</a>
+                    <a href="/admin.html" class="footer-link">Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle JS & Common Layout Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/layout.js"></script>
+</body>
+</html>

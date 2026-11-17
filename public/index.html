@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Wi-Fi | Network Overview</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Editorial Design System -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Top Utility Bar -->
+    <div class="top-notice-bar">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="indicator-badge">
+                    <span class="indicator-dot"></span> SIMULATED NETWORK DATA &mdash; NOV 1&ndash;14, 2026
+                </span>
+            </div>
+            <div class="d-none d-md-block text-muted">
+                DATABASE: POSTGRESQL 16 &nbsp;|&nbsp; PROTOTYPE ENVIRONMENT
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid px-4 p-0">
+            <a class="brand-title" href="/index.html">
+                CAMPUS <span>/</span> WI-FI
+            </a>
+            <button class="navbar-toggler border-0 p-3" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-dark"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link-custom active" href="/index.html">Overview</a>
+                    <a class="nav-link-custom" href="/access-points.html">Access Points</a>
+                    <a class="nav-link-custom" href="/performance.html">Performance</a>
+                    <a class="nav-link-custom" href="/incidents.html">Incidents</a>
+                    <a class="nav-link-custom" href="/investigation.html">Investigation</a>
+                    <a class="nav-link-custom" href="/analytics.html">Analytics</a>
+                    <a class="nav-link-custom" href="/admin.html">Admin</a>
+                </div>
+                <div>
+                    <a href="/incidents.html" class="cta-button-nav">
+                        LOG INCIDENT <i class="bi bi-arrow-up-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="page-container">
+        <!-- Editorial Header Box -->
+        <div class="page-header-box d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+            <div>
+                <div class="editorial-sub mb-2">INFRASTRUCTURE TELEMETRY &bull; PAGE 01</div>
+                <h1 class="editorial-giant mb-1">NETWORK OVERVIEW</h1>
+                <p class="text-muted mb-0">System-wide access point operational health, latest telemetry recordings, and active incident trackers.</p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <label for="buildingFilter" class="mono-label text-nowrap">Filter Building:</label>
+                <select id="buildingFilter" class="form-select-editorial" style="min-width: 200px;">
+                    <option value="">All Campus Buildings</option>
+                    <option value="Academic Block">Academic Block</option>
+                    <option value="Administration">Administration</option>
+                    <option value="Computer Lab">Computer Lab</option>
+                    <option value="Hostel">Hostel</option>
+                    <option value="Library">Library</option>
+                    <option value="Seminar Hall">Seminar Hall</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- KPI Grid -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card">
+                    <div class="kpi-label">TOTAL DEVICES</div>
+                    <div class="kpi-value" id="kpiTotalAPs">--</div>
+                    <div class="mono-label text-muted mt-2">12 APs Configured</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card">
+                    <div class="kpi-label">HEALTHY APs</div>
+                    <div class="kpi-value healthy" id="kpiHealthyAPs">--</div>
+                    <div class="mono-label text-muted mt-2">&lt;250ms, &lt;20% Loss</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card">
+                    <div class="kpi-label">DEGRADED APs</div>
+                    <div class="kpi-value degraded" id="kpiDegradedAPs">--</div>
+                    <div class="mono-label text-muted mt-2">&ge;250ms or &ge;20% Loss</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card">
+                    <div class="kpi-label">DOWN APs</div>
+                    <div class="kpi-value down" id="kpiDownAPs">--</div>
+                    <div class="mono-label text-muted mt-2">is_up = false</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card">
+                    <div class="kpi-label">TOTAL INCIDENTS</div>
+                    <div class="kpi-value" id="kpiTotalIncidents">--</div>
+                    <div class="mono-label text-muted mt-2">Recorded History</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="kpi-card">
+                    <div class="kpi-label">UNRESOLVED</div>
+                    <div class="kpi-value accent" id="kpiUnresolvedIncidents">--</div>
+                    <div class="mono-label text-muted mt-2">Open / Investigating</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Sections: Latest Health & Recent Incidents -->
+        <div class="row g-4">
+            <!-- Left Column: Current Access Point Status -->
+            <div class="col-lg-7">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-router me-2"></i>LATEST RECORDED ACCESS POINT STATUS</span>
+                        <a href="/access-points.html" class="mono-label text-dark text-decoration-none">VIEW ALL &rarr;</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table-editorial mb-0">
+                            <thead>
+                                <tr>
+                                    <th>DEVICE ID</th>
+                                    <th>BUILDING</th>
+                                    <th>LOCATION</th>
+                                    <th>LATENCY</th>
+                                    <th>PACKET LOSS</th>
+                                    <th>STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overviewAPTableBody">
+                                <tr>
+                                    <td colspan="6" class="state-placeholder">
+                                        <div class="state-placeholder-icon"><i class="bi bi-arrow-repeat spin"></i></div>
+                                        <div class="state-placeholder-title">Awaiting Telemetry Ingestion</div>
+                                        <div class="state-placeholder-text">Fetch latest access point readings through /api/overview</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Recent Network Incidents -->
+            <div class="col-lg-5">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-exclamation-octagon me-2"></i>RECENT NETWORK INCIDENTS</span>
+                        <a href="/incidents.html" class="mono-label text-dark text-decoration-none">VIEW ALL &rarr;</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table-editorial mb-0">
+                            <thead>
+                                <tr>
+                                    <th>INCIDENT</th>
+                                    <th>AP ID</th>
+                                    <th>STATUS</th>
+                                    <th>CAUSE</th>
+                                </tr>
+                            </thead>
+                            <tbody id="overviewIncidentTableBody">
+                                <tr>
+                                    <td colspan="4" class="state-placeholder">
+                                        <div class="state-placeholder-icon"><i class="bi bi-shield-check"></i></div>
+                                        <div class="state-placeholder-title">Awaiting Incident Data</div>
+                                        <div class="state-placeholder-text">Querying incident logs...</div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="footer-editorial">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <strong>CAMPUS / WI-FI MONITORING AND INCIDENT MANAGEMENT SYSTEM</strong><br>
+                    <span class="text-muted">Simulated Historical Dataset (Nov 1&ndash;14, 2026) &bull; Prototype Implementation</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/index.html" class="footer-link me-3">Overview</a>
+                    <a href="/access-points.html" class="footer-link me-3">Directory</a>
+                    <a href="/performance.html" class="footer-link me-3">Performance</a>
+                    <a href="/incidents.html" class="footer-link me-3">Incidents</a>
+                    <a href="/investigation.html" class="footer-link me-3">Investigation</a>
+                    <a href="/analytics.html" class="footer-link me-3">Analytics</a>
+                    <a href="/admin.html" class="footer-link">Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle JS & Common Layout Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/layout.js"></script>
+</body>
+</html>

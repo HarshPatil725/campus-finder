@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Wi-Fi | Network Performance</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <!-- Custom Editorial Design System -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Top Utility Bar -->
+    <div class="top-notice-bar">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="indicator-badge">
+                    <span class="indicator-dot"></span> SIMULATED NETWORK DATA &mdash; NOV 1&ndash;14, 2026
+                </span>
+            </div>
+            <div class="d-none d-md-block text-muted">
+                4,032 TELEMETRY READINGS &nbsp;|&nbsp; 1-HOUR SAMPLE INTERVAL
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid px-4 p-0">
+            <a class="brand-title" href="/index.html">
+                CAMPUS <span>/</span> WI-FI
+            </a>
+            <button class="navbar-toggler border-0 p-3" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-dark"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link-custom" href="/index.html">Overview</a>
+                    <a class="nav-link-custom" href="/access-points.html">Access Points</a>
+                    <a class="nav-link-custom active" href="/performance.html">Performance</a>
+                    <a class="nav-link-custom" href="/incidents.html">Incidents</a>
+                    <a class="nav-link-custom" href="/investigation.html">Investigation</a>
+                    <a class="nav-link-custom" href="/analytics.html">Analytics</a>
+                    <a class="nav-link-custom" href="/admin.html">Admin</a>
+                </div>
+                <div>
+                    <a href="/performance.html" class="cta-button-nav">
+                        EXPORT READINGS <i class="bi bi-download"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="page-container">
+        <!-- Header Box -->
+        <div class="page-header-box d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+            <div>
+                <div class="editorial-sub mb-2">TELEMETRY ANALYTICS &bull; PAGE 03</div>
+                <h1 class="editorial-giant mb-1">PERFORMANCE</h1>
+                <p class="text-muted mb-0">Time-series latency dynamics, packet loss distribution, and raw telemetry logs.</p>
+            </div>
+            <div class="mono-label text-muted">
+                THRESHOLDS: &lt;250ms HEALTHY &bull; &lt;20% LOSS HEALTHY
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="editorial-card p-3 mb-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="perfBuildingSelect" class="mono-label mb-1">Building</label>
+                    <select id="perfBuildingSelect" class="form-select-editorial">
+                        <option value="">All Buildings</option>
+                        <option value="Academic Block">Academic Block</option>
+                        <option value="Administration">Administration</option>
+                        <option value="Computer Lab">Computer Lab</option>
+                        <option value="Hostel">Hostel</option>
+                        <option value="Library">Library</option>
+                        <option value="Seminar Hall">Seminar Hall</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="perfApSelect" class="mono-label mb-1">Access Point</label>
+                    <select id="perfApSelect" class="form-select-editorial">
+                        <option value="">All Access Points</option>
+                        <option value="AP-01">AP-01 (Library GF)</option>
+                        <option value="AP-02">AP-02 (Library 1F)</option>
+                        <option value="AP-03">AP-03 (Computer Lab A)</option>
+                        <option value="AP-04">AP-04 (Computer Lab B)</option>
+                        <option value="AP-05">AP-05 (Academic Block F1)</option>
+                        <option value="AP-06">AP-06 (Academic Block F2)</option>
+                        <option value="AP-07">AP-07 (Administration Rec.)</option>
+                        <option value="AP-08">AP-08 (Administration Staff)</option>
+                        <option value="AP-09">AP-09 (Hostel East)</option>
+                        <option value="AP-10">AP-10 (Hostel West)</option>
+                        <option value="AP-11">AP-11 (Seminar Main)</option>
+                        <option value="AP-12">AP-12 (Seminar Backstage)</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="perfStartDate" class="mono-label mb-1">From Date</label>
+                    <input type="date" id="perfStartDate" class="form-control-editorial" value="2026-11-01" min="2026-11-01" max="2026-11-14">
+                </div>
+                <div class="col-md-2">
+                    <label for="perfEndDate" class="mono-label mb-1">To Date</label>
+                    <input type="date" id="perfEndDate" class="form-control-editorial" value="2026-11-14" min="2026-11-01" max="2026-11-14">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" id="btnApplyPerfFilters" class="btn-editorial btn-editorial-accent w-100 justify-content-center">
+                        APPLY FILTER
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="row g-4 mb-4">
+            <!-- Latency Chart -->
+            <div class="col-lg-6">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-graph-up me-2"></i>LATENCY TREND (MS)</span>
+                        <span class="mono-label text-muted">NOTE: OFFLINE DEVICES RECORD NULL LATENCY</span>
+                    </div>
+                    <div style="min-height: 280px; position: relative;">
+                        <canvas id="latencyChart"></canvas>
+                        <div id="latencyPlaceholder" class="state-placeholder position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center">
+                            <div class="state-placeholder-icon"><i class="bi bi-activity"></i></div>
+                            <div class="state-placeholder-title">Chart Awaiting Data Stream</div>
+                            <div class="state-placeholder-text">Click "Apply Filter" to render time-series curves</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Packet Loss Chart -->
+            <div class="col-lg-6">
+                <div class="editorial-card h-100">
+                    <div class="editorial-card-header">
+                        <span><i class="bi bi-percent me-2"></i>PACKET LOSS TREND (%)</span>
+                        <span class="mono-label text-muted">DEGRADATION THRESHOLD &ge; 20%</span>
+                    </div>
+                    <div style="min-height: 280px; position: relative;">
+                        <canvas id="packetLossChart"></canvas>
+                        <div id="packetLossPlaceholder" class="state-placeholder position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center">
+                            <div class="state-placeholder-icon"><i class="bi bi-bar-chart"></i></div>
+                            <div class="state-placeholder-title">Packet Loss Distribution</div>
+                            <div class="state-placeholder-text">Telemetry visualization powered by Chart.js</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Raw Readings Table -->
+        <div class="editorial-card p-0">
+            <div class="p-3 border-bottom border-dark d-flex justify-content-between align-items-center">
+                <span class="mono-label fw-bold"><i class="bi bi-table me-2"></i>NETWORK READINGS TELEMETRY LOG</span>
+                <span class="mono-label text-muted" id="readingsCountLabel">Showing records from PostgreSQL</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table-editorial mb-0">
+                    <thead>
+                        <tr>
+                            <th>READING ID</th>
+                            <th>TIMESTAMP</th>
+                            <th>AP ID</th>
+                            <th>BUILDING</th>
+                            <th>LATENCY (MS)</th>
+                            <th>PACKET LOSS</th>
+                            <th>IS UP</th>
+                            <th>HEALTH CLASSIFICATION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="readingsTableBody">
+                        <tr>
+                            <td colspan="8" class="state-placeholder">
+                                <div class="state-placeholder-icon"><i class="bi bi-server"></i></div>
+                                <div class="state-placeholder-title">Network Readings Table</div>
+                                <div class="state-placeholder-text">Load records via /api/readings with pagination</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination Controls -->
+            <div class="p-3 d-flex justify-content-between align-items-center border-top border-dark">
+                <div class="mono-label text-muted">PAGE <span id="currentPageNum">1</span> OF <span id="totalPagesNum">--</span></div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-editorial-outline" id="btnPrevPage" disabled>&larr; PREVIOUS</button>
+                    <button class="btn btn-sm btn-editorial-outline" id="btnNextPage">NEXT &rarr;</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="footer-editorial">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <strong>CAMPUS / WI-FI MONITORING AND INCIDENT MANAGEMENT SYSTEM</strong><br>
+                    <span class="text-muted">Simulated Historical Dataset (Nov 1&ndash;14, 2026) &bull; Prototype Implementation</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/index.html" class="footer-link me-3">Overview</a>
+                    <a href="/access-points.html" class="footer-link me-3">Directory</a>
+                    <a href="/performance.html" class="footer-link me-3">Performance</a>
+                    <a href="/incidents.html" class="footer-link me-3">Incidents</a>
+                    <a href="/investigation.html" class="footer-link me-3">Investigation</a>
+                    <a href="/analytics.html" class="footer-link me-3">Analytics</a>
+                    <a href="/admin.html" class="footer-link">Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle JS & Common Layout Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/layout.js"></script>
+</body>
+</html>

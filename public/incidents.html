@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Wi-Fi | Incident Management</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,900;1,600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Editorial Design System -->
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <!-- Top Utility Bar -->
+    <div class="top-notice-bar">
+        <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+            <div>
+                <span class="indicator-badge">
+                    <span class="indicator-dot"></span> SIMULATED NETWORK DATA &mdash; NOV 1&ndash;14, 2026
+                </span>
+            </div>
+            <div class="d-none d-md-block text-muted">
+                INCIDENT TRACKING WORKFLOW &bull; LIFECYCLE MANAGEMENT
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <div class="container-fluid px-4 p-0">
+            <a class="brand-title" href="/index.html">
+                CAMPUS <span>/</span> WI-FI
+            </a>
+            <button class="navbar-toggler border-0 p-3" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-label="Toggle navigation">
+                <i class="bi bi-list fs-2 text-dark"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <div class="navbar-nav me-auto">
+                    <a class="nav-link-custom" href="/index.html">Overview</a>
+                    <a class="nav-link-custom" href="/access-points.html">Access Points</a>
+                    <a class="nav-link-custom" href="/performance.html">Performance</a>
+                    <a class="nav-link-custom active" href="/incidents.html">Incidents</a>
+                    <a class="nav-link-custom" href="/investigation.html">Investigation</a>
+                    <a class="nav-link-custom" href="/analytics.html">Analytics</a>
+                    <a class="nav-link-custom" href="/admin.html">Admin</a>
+                </div>
+                <div>
+                    <button class="cta-button-nav" data-bs-toggle="modal" data-bs-target="#registerIncidentModal">
+                        NEW INCIDENT +
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Content -->
+    <main class="page-container">
+        <!-- Header Box -->
+        <div class="page-header-box d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3">
+            <div>
+                <div class="editorial-sub mb-2">OPERATIONS LOG &bull; PAGE 04</div>
+                <h1 class="editorial-giant mb-1">INCIDENT MANAGEMENT</h1>
+                <p class="text-muted mb-0">Track, prioritize, and log campus Wi-Fi network outages and degradation tickets.</p>
+            </div>
+            <div>
+                <button type="button" class="btn-editorial btn-editorial-accent" data-bs-toggle="modal" data-bs-target="#registerIncidentModal">
+                    <i class="bi bi-plus-lg"></i> REGISTER NEW INCIDENT
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter & Search Controls -->
+        <div class="editorial-card p-3 mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-dark"><i class="bi bi-search"></i></span>
+                        <input type="text" id="incidentSearchInput" class="form-control-editorial" placeholder="Search by ID, cause, or resolution...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select id="incidentStatusFilter" class="form-select-editorial">
+                        <option value="">All Statuses (Open, Investigating, Resolved)</option>
+                        <option value="unresolved">Unresolved Only (Open + Investigating)</option>
+                        <option value="Open">Open Only</option>
+                        <option value="Investigating">Investigating Only</option>
+                        <option value="Resolved">Resolved Only</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="incidentBuildingFilter" class="form-select-editorial">
+                        <option value="">All Buildings</option>
+                        <option value="Academic Block">Academic Block</option>
+                        <option value="Administration">Administration</option>
+                        <option value="Computer Lab">Computer Lab</option>
+                        <option value="Hostel">Hostel</option>
+                        <option value="Library">Library</option>
+                        <option value="Seminar Hall">Seminar Hall</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="button" id="btnResetIncidentFilters" class="btn-editorial btn-editorial-outline w-100 justify-content-center">
+                        RESET FILTERS
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Incident Master Table -->
+        <div class="editorial-card p-0">
+            <div class="table-responsive">
+                <table class="table-editorial mb-0">
+                    <thead>
+                        <tr>
+                            <th>INCIDENT ID</th>
+                            <th>AP ID</th>
+                            <th>BUILDING / LOCATION</th>
+                            <th>START TIME</th>
+                            <th>END TIME</th>
+                            <th>STATUS</th>
+                            <th>SUSPECTED CAUSE</th>
+                            <th>RESOLUTION</th>
+                            <th>ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incidentsTableBody">
+                        <tr>
+                            <td colspan="9" class="state-placeholder">
+                                <div class="state-placeholder-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                                <div class="state-placeholder-title">Incidents Management Table</div>
+                                <div class="state-placeholder-text">Loading incidents from /api/incidents...</div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal: Register / Edit Incident -->
+    <div class="modal fade" id="registerIncidentModal" tabindex="-1" aria-labelledby="registerIncidentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-2 border-dark" style="background-color: var(--surface);">
+                <div class="modal-header border-bottom border-dark px-4 py-3">
+                    <h5 class="modal-title editorial-heading fs-4" id="registerIncidentModalLabel">REGISTER CAMPUS NETWORK INCIDENT</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <form id="incidentForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="formIncidentId" class="mono-label mb-1">Incident ID (e.g. INC-021)</label>
+                                <input type="text" id="formIncidentId" class="form-control-editorial" placeholder="INC-021" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="formApId" class="mono-label mb-1">Affected Access Point</label>
+                                <select id="formApId" class="form-select-editorial" required>
+                                    <option value="">Select Access Point...</option>
+                                    <option value="AP-01">AP-01 (Library Ground Floor)</option>
+                                    <option value="AP-02">AP-02 (Library First Floor)</option>
+                                    <option value="AP-03">AP-03 (Computer Lab Lab A)</option>
+                                    <option value="AP-04">AP-04 (Computer Lab Lab B)</option>
+                                    <option value="AP-05">AP-05 (Academic Block Floor 1)</option>
+                                    <option value="AP-06">AP-06 (Academic Block Floor 2)</option>
+                                    <option value="AP-07">AP-07 (Administration Reception)</option>
+                                    <option value="AP-08">AP-08 (Administration Staff Wing)</option>
+                                    <option value="AP-09">AP-09 (Hostel East Wing)</option>
+                                    <option value="AP-10">AP-10 (Hostel West Wing)</option>
+                                    <option value="AP-11">AP-11 (Seminar Hall Main Hall)</option>
+                                    <option value="AP-12">AP-12 (Seminar Hall Backstage)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="formStartTime" class="mono-label mb-1">Start Time (YYYY-MM-DD HH:MM)</label>
+                                <input type="text" id="formStartTime" class="form-control-editorial" placeholder="2026-11-15 10:00" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="formStatus" class="mono-label mb-1">Incident Status</label>
+                                <select id="formStatus" class="form-select-editorial" required>
+                                    <option value="Open">Open</option>
+                                    <option value="Investigating">Investigating</option>
+                                    <option value="Resolved">Resolved</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label for="formSuspectedCause" class="mono-label mb-1">Suspected Cause</label>
+                                <input type="text" id="formSuspectedCause" class="form-control-editorial" placeholder="e.g. Wireless interference, Power interruption..." required>
+                                <small class="text-muted mono-label d-block mt-1">Note: Recorded based on operator assessment</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="formEndTime" class="mono-label mb-1">End Time (Optional if unresolved)</label>
+                                <input type="text" id="formEndTime" class="form-control-editorial" placeholder="2026-11-15 13:00">
+                            </div>
+                            <div class="col-12">
+                                <label for="formResolution" class="mono-label mb-1">Resolution Notes (Required if Resolved)</label>
+                                <textarea id="formResolution" rows="3" class="form-control-editorial" placeholder="Enter resolution details and post-incident verification steps..."></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top border-dark px-4 py-3">
+                    <button type="button" class="btn-editorial btn-editorial-outline" data-bs-dismiss="modal">CANCEL</button>
+                    <button type="button" class="btn-editorial btn-editorial-accent" id="btnSaveIncident">SAVE INCIDENT RECORD</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Footer -->
+    <footer class="footer-editorial">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 mb-3 mb-md-0">
+                    <strong>CAMPUS / WI-FI MONITORING AND INCIDENT MANAGEMENT SYSTEM</strong><br>
+                    <span class="text-muted">Simulated Historical Dataset (Nov 1&ndash;14, 2026) &bull; Prototype Implementation</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="/index.html" class="footer-link me-3">Overview</a>
+                    <a href="/access-points.html" class="footer-link me-3">Directory</a>
+                    <a href="/performance.html" class="footer-link me-3">Performance</a>
+                    <a href="/incidents.html" class="footer-link me-3">Incidents</a>
+                    <a href="/investigation.html" class="footer-link me-3">Investigation</a>
+                    <a href="/analytics.html" class="footer-link me-3">Analytics</a>
+                    <a href="/admin.html" class="footer-link">Admin</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap Bundle JS & Common Layout Script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/layout.js"></script>
+</body>
+</html>
