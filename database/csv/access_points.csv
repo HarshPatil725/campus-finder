@@ -1,0 +1,13 @@
+access_point_id,building,location
+AP-01,Library,Ground Floor
+AP-02,Library,First Floor
+AP-03,Computer Lab,Lab A
+AP-04,Computer Lab,Lab B
+AP-05,Academic Block,Floor 1
+AP-06,Academic Block,Floor 2
+AP-07,Administration,Reception
+AP-08,Administration,Staff Wing
+AP-09,Hostel,East Wing
+AP-10,Hostel,West Wing
+AP-11,Seminar Hall,Main Hall
+AP-12,Seminar Hall,Backstage
