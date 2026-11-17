@@ -18,49 +18,52 @@ Repository: `https://github.com/HarshPatil725/campus-finder`
 | **Phase 6** | **Incident Management and Data Entry** | **COMPLETED** | Implemented write operations (`POST /api/readings`, `POST /api/incidents`, `PATCH /api/incidents/:id`, `PATCH /api/access-points/:id`). Enforced database-level validation, transaction atomicity for incident resolution, dynamic UI form submissions, and persistence verification across application restarts. 74/74 automated tests passed. |
 | **Phase 7** | **System Testing and Security** | **COMPLETED** | Full system testing across database integrity, backend resilience, frontend structure, and end-to-end operational workflows. Hardened security with HTTP headers, request size limits, timing-safe scrypt authentication, server-side sessions, and parameterized SQL queries. 99/99 automated tests passed. |
 | **Phase 8** | **Docker and Docker Compose** | **COMPLETED** | Containerized application using multi-stage `Dockerfile` (`node:20-alpine`), non-root `node` user, and `compose.yaml`. Orchestrated `app` and `db` services with Docker bridge networking, PostgreSQL health checks, `service_healthy` readiness dependency, loopback-only DB port binding (`127.0.0.1:5432`), and persistent named volume (`campus-wifi-tracker_pgdata`). Verified volume retention across full container teardown and recreation. |
+| **Phase 9** | **Final Deployment & Documentation** | **COMPLETED** | Prepared production deployment configurations (`render.yaml`, `.env.production.example`), verified SSL readiness, executed 10-step final demonstration script, authored full technical documentation ([README.md](README.md), [DOCKER_GUIDE.md](DOCKER_GUIDE.md), [TEST_RESULTS.md](TEST_RESULTS.md), [FINAL_PROJECT_REPORT.md](FINAL_PROJECT_REPORT.md)), and established PPT slide-by-slide screenshot guide. |
 
 ---
 
-## Phase 8: Verification & Container Architecture Artifacts
+## Phase 9: Final Deployment & Documentation Artifacts
 
-### 1. Container Configuration Files
-- **`Dockerfile`**:
-  - Base Image: `node:20-alpine` (lightweight, minimal attack surface).
-  - Includes `dumb-init` for proper signal handling and PID 1 reaper.
-  - Layer caching: `package.json` and `package-lock.json` copied first with `npm ci --omit=dev`.
-  - Security: Runs under built-in non-root user `node`.
-  - Health check: Queries `http://localhost:3000/api/health` every 15s.
-- **`compose.yaml`**:
-  - `db`: `postgres:16-alpine` with healthcheck `pg_isready -U postgres -d campus_wifi_db`.
-  - `app`: Built from `Dockerfile`, depends on `db` with `condition: service_healthy`.
-  - Network: Isolated internal bridge network (`campus_net`).
-  - Volume: Named persistent volume `campus-wifi-tracker_pgdata` mapping to `/var/lib/postgresql/data`.
-  - Local Dev Connection: Bound strictly to loopback (`127.0.0.1:5432:5432`) to prevent public network exposure.
-- **`.dockerignore`**: Excludes `node_modules`, `.git`, `.env`, tests, and IDE artifacts.
+### 1. Cloud Deployment Infrastructure as Code
+- **Render.com Blueprint (`render.yaml`)**:
+  - Web service running Dockerfile on Node 20 LTS Alpine.
+  - Managed PostgreSQL instance with private VPC networking (`ipAllowList: []` to prevent public internet access).
+  - Production SSL/TLS termination and health check monitoring.
+- **Production Environment Template (`.env.production.example`)**:
+  - Configures `DATABASE_URL` with `sslmode=require`.
+  - Enables `REQUIRE_AUTH=true` for administrator lockdown.
+  - Secure salt and scrypt password hashing configurations.
 
 ---
 
-### 2. Operational Verification Results
-- **Stack Startup**: `docker compose up -d --build` builds and starts both services cleanly.
-- **Service Health**: Both `campus_wifi_db` and `campus_wifi_app` report `Up (healthy)`.
-- **Health Check**: `GET http://localhost:3000/api/health` returns HTTP 200 with `{"status":"ok","database":"connected"}`.
-- **Frontend Delivery**: `GET http://localhost:3000/` serves the warm ivory editorial Bootstrap interface.
-- **SQL Telemetry Retrieval**: `GET http://localhost:3000/api/overview` retrieves live aggregations (12 APs, 10 healthy, 1 degraded, 1 down, 21 incidents).
-- **Incident Creation**: Created test incident via containerized API (`POST /api/incidents`).
-- **Data Persistence**:
-  - Rebuilt & restarted `campus_wifi_app` container &rarr; all records persisted.
-  - Executed `docker compose down && docker compose up -d` &rarr; all records retained in volume `campus-wifi-tracker_pgdata`.
-- **Automated Tests**: 99/99 automated tests pass cleanly against the compose-backed PostgreSQL instance.
+### 2. Verified 10-Step Final Demonstration Script
+Executed and verified end-to-end against the Docker Compose production stack:
+1. Open Network Overview (`/index.html` & `/api/overview`).
+2. Select an Access Point (`AP-02` - Library First Floor).
+3. Inspect historical network readings (Chart.js dual line charts).
+4. Enter simulated network problem (`POST /api/readings` with high latency/packet loss).
+5. Register a new incident (`POST /api/incidents` generating `INC-022`).
+6. Investigate correlated metric evidence ($\pm 2\text{ hour}$ telemetry window).
+7. Record updated suspected cause (`PATCH /api/incidents/:id` &rarr; `Investigating`).
+8. Resolve the incident with required notes and end time (`PATCH /api/incidents/:id` &rarr; `Resolved`).
+9. Restart the application (`docker compose restart app`).
+10. Verify complete database persistence.
 
 ---
 
-### 3. Exact Database Record Counts
+### 3. Final Technical & Academic Documentation
+- **[README.md](README.md)**: Exhaustive documentation covering introduction, problem statement, objectives, tech stack, architecture, database schema, health classification, 7 views, REST endpoints, CSV datasets, local setup, Docker setup, cloud deployment, test results, limitations, and future improvements.
+- **[FINAL_PROJECT_REPORT.md](FINAL_PROJECT_REPORT.md)**: Final academic project report, 10-step demonstration sequence, and slide-by-slide PPT presentation guide with specific screenshot instructions.
+- **[DOCKER_GUIDE.md](DOCKER_GUIDE.md)**: Complete operational guide for Docker Compose commands and database administration.
+- **[TEST_RESULTS.md](TEST_RESULTS.md)**: Formal 99-test matrix with inputs, expected outputs, actual outputs, and pass/fail statuses.
 
-| Metric / Table | Count | Verification Details |
-| :--- | :---: | :--- |
-| **`access_points`** | **12** | 6 Campus Buildings preserved |
-| **`network_readings`** | **4,033** | 4,032 historical + 1 Phase 6 reading (#4033) |
-| **`incidents` (Total)** | **21** | 20 historical + 1 Phase 6 incident (INC-021) |
-| **Resolved Incidents** | **19** | 18 historical + 1 resolved incident (INC-021) |
-| **Unresolved Incidents**| **2** | Preserved (INC-019, INC-020) |
-| **Foreign Key Integrity**| **100%** | Zero orphan records, constraints enforced |
+---
+
+### 4. Verified Database Record Counts
+
+```
+ ap_count | reading_count | incident_count | resolved_incidents | unresolved_incidents 
+----------+---------------+----------------+--------------------+----------------------
+       12 |          4033 |             21 |                 19 |                    2
+```
+All relational constraints and foreign keys verified with zero orphan records.
