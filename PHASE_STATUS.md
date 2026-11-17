@@ -17,72 +17,50 @@ Repository: `https://github.com/HarshPatil725/campus-finder`
 | **Phase 5** | **Frontend and Backend Integration** | **COMPLETED** | Connected all seven frontend views to live REST endpoints via centralized `public/js/api.js`. Live database telemetry rendered across all views with dynamic building filters, device drawers, Chart.js line and doughnut visualizations, incident correlation evidence, and audit metrics. Zero hardcoded mock arrays. 66/66 automated tests passed. |
 | **Phase 6** | **Incident Management and Data Entry** | **COMPLETED** | Implemented write operations (`POST /api/readings`, `POST /api/incidents`, `PATCH /api/incidents/:id`, `PATCH /api/access-points/:id`). Enforced database-level validation, transaction atomicity for incident resolution, dynamic UI form submissions, and persistence verification across application restarts. 74/74 automated tests passed. |
 | **Phase 7** | **System Testing and Security** | **COMPLETED** | Full system testing across database integrity, backend resilience, frontend structure, and end-to-end operational workflows. Hardened security with HTTP headers, request size limits, timing-safe scrypt authentication, server-side sessions, and parameterized SQL queries. 99/99 automated tests passed. |
+| **Phase 8** | **Docker and Docker Compose** | **COMPLETED** | Containerized application using multi-stage `Dockerfile` (`node:20-alpine`), non-root `node` user, and `compose.yaml`. Orchestrated `app` and `db` services with Docker bridge networking, PostgreSQL health checks, `service_healthy` readiness dependency, loopback-only DB port binding (`127.0.0.1:5432`), and persistent named volume (`campus-wifi-tracker_pgdata`). Verified volume retention across full container teardown and recreation. |
 
 ---
 
-## Phase 7: Verification & Security Hardening Artifacts
+## Phase 8: Verification & Container Architecture Artifacts
 
-### 1. Security Architecture Implementation
-- **HTTP Security Headers**:
-  - `X-Content-Type-Options: nosniff` (MIME sniffing prevention)
-  - `X-Frame-Options: DENY` (Clickjacking prevention)
-  - `X-XSS-Protection: 1; mode=block` (Reflected XSS filter)
-  - `Referrer-Policy: strict-origin-when-cross-origin`
-  - `Permissions-Policy: geolocation=(), camera=(), microphone=()`
-  - `Content-Security-Policy`: Explicit source policies allowing only origin and approved CDNs (Google Fonts, jsDelivr Bootstrap 5 & Chart.js).
-- **Request Size Limits**:
-  - Strict payload limits (`100kb`) on `express.json()` and `express.urlencoded()`. Oversized payloads rejected with `413 Payload Too Large`.
-- **SQL Injection Immunity**:
-  - All query parameters sanitized through PostgreSQL parameterized tokens (`$1, $2, ...`).
-  - Tested against `' OR '1'='1`, `'; DROP TABLE ...`, `UNION SELECT`, and query stacking payloads with zero data corruption or syntax leakage.
-- **Administrator Authentication & Server-Side Sessions**:
-  - Password hashing via `crypto.scryptSync` with cryptographic salt.
-  - Constant-time password comparison (`crypto.timingSafeEqual`) to prevent timing attacks.
-  - Server-side cryptographic session store (`Map` with TTL expiration) and cookie enforcement (`HttpOnly; SameSite=Strict`).
-  - Endpoints: `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/session`.
-  - Configurable authorization middleware (`requireAdmin`) supporting both seamless local development and production lockdown via `REQUIRE_AUTH=true`.
+### 1. Container Configuration Files
+- **`Dockerfile`**:
+  - Base Image: `node:20-alpine` (lightweight, minimal attack surface).
+  - Includes `dumb-init` for proper signal handling and PID 1 reaper.
+  - Layer caching: `package.json` and `package-lock.json` copied first with `npm ci --omit=dev`.
+  - Security: Runs under built-in non-root user `node`.
+  - Health check: Queries `http://localhost:3000/api/health` every 15s.
+- **`compose.yaml`**:
+  - `db`: `postgres:16-alpine` with healthcheck `pg_isready -U postgres -d campus_wifi_db`.
+  - `app`: Built from `Dockerfile`, depends on `db` with `condition: service_healthy`.
+  - Network: Isolated internal bridge network (`campus_net`).
+  - Volume: Named persistent volume `campus-wifi-tracker_pgdata` mapping to `/var/lib/postgresql/data`.
+  - Local Dev Connection: Bound strictly to loopback (`127.0.0.1:5432:5432`) to prevent public network exposure.
+- **`.dockerignore`**: Excludes `node_modules`, `.git`, `.env`, tests, and IDE artifacts.
 
 ---
 
-### 2. Comprehensive Test Suite Breakdown
-
-Command: `npm test` (`node --test 'tests/*.test.js'`)  
-Results: **99 passing tests across 7 test suites (0 failures)**
-
-1. `tests/system_and_security.test.js`:
-   - Primary key uniqueness constraint enforcement.
-   - Foreign key constraint rejection on invalid access points.
-   - NOT NULL column constraint enforcement.
-   - CHECK constraints on latency (non-negative) and packet loss (`0–100%`).
-   - Secure HTTP response headers presence.
-   - Malformed JSON handling (`400 Bad Request` without crash).
-   - Payload limit enforcement (`413 Payload Too Large`).
-   - SQL injection attack payload neutralization across all query parameters.
-   - Non-existent resource ID handling (`404 Not Found`).
-   - Administrator authentication & server-side session lifecycle.
-   - Complete 7-page navigation structure & Bootstrap 5 responsive layout.
-   - Full End-to-End workflow (Add Reading &rarr; Incident &rarr; Investigate &rarr; Update &rarr; Resolve &rarr; Persistence &rarr; Cleanup).
-2. `tests/write_ops.test.js`: Phase 6 write operations, validation, and lifecycle transitions.
-3. `tests/integration.test.js`: Phase 5 frontend/backend API integration.
-4. `tests/frontend.test.js`: Phase 4 HTML view structure and design assets.
-5. `tests/api.test.js`: Phase 3 read-only REST endpoints.
-6. `tests/db.test.js`: Phase 1 PostgreSQL schema integrity and analytical views.
-7. `tests/server.test.js`: Phase 2 Express foundation and database health check.
+### 2. Operational Verification Results
+- **Stack Startup**: `docker compose up -d --build` builds and starts both services cleanly.
+- **Service Health**: Both `campus_wifi_db` and `campus_wifi_app` report `Up (healthy)`.
+- **Health Check**: `GET http://localhost:3000/api/health` returns HTTP 200 with `{"status":"ok","database":"connected"}`.
+- **Frontend Delivery**: `GET http://localhost:3000/` serves the warm ivory editorial Bootstrap interface.
+- **SQL Telemetry Retrieval**: `GET http://localhost:3000/api/overview` retrieves live aggregations (12 APs, 10 healthy, 1 degraded, 1 down, 21 incidents).
+- **Incident Creation**: Created test incident via containerized API (`POST /api/incidents`).
+- **Data Persistence**:
+  - Rebuilt & restarted `campus_wifi_app` container &rarr; all records persisted.
+  - Executed `docker compose down && docker compose up -d` &rarr; all records retained in volume `campus-wifi-tracker_pgdata`.
+- **Automated Tests**: 99/99 automated tests pass cleanly against the compose-backed PostgreSQL instance.
 
 ---
 
 ### 3. Exact Database Record Counts
 
-| Metric / Table | Baseline | Final State | Status |
-| :--- | :---: | :---: | :---: |
-| **`access_points`** | **12** | **12** | Unchanged |
-| **`network_readings`** | **4,032** | **4,033** | Verified (+1 reading #4033) |
-| **`incidents` (Total)** | **20** | **21** | Verified (+1 incident INC-021) |
-| **Resolved Incidents** | **18** | **19** | Verified |
-| **Unresolved Incidents**| **2** | **2** | Preserved (INC-019, INC-020) |
-| **Foreign Key Orphans**| **0** | **0** | Integrity Intact |
-
----
-
-### 4. Phase 7 Test Results Document
-Full test case specifications, inputs, expected outputs, actual outputs, and pass/fail statuses are documented in [TEST_RESULTS.md](file:///Users/harshpatilmac/Desktop/campus-wifi-tracker/TEST_RESULTS.md).
+| Metric / Table | Count | Verification Details |
+| :--- | :---: | :--- |
+| **`access_points`** | **12** | 6 Campus Buildings preserved |
+| **`network_readings`** | **4,033** | 4,032 historical + 1 Phase 6 reading (#4033) |
+| **`incidents` (Total)** | **21** | 20 historical + 1 Phase 6 incident (INC-021) |
+| **Resolved Incidents** | **19** | 18 historical + 1 resolved incident (INC-021) |
+| **Unresolved Incidents**| **2** | Preserved (INC-019, INC-020) |
+| **Foreign Key Integrity**| **100%** | Zero orphan records, constraints enforced |

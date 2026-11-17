@@ -1,39 +1,65 @@
 services:
+  # =========================================================================
+  # 1. PostgreSQL Database Service
+  # =========================================================================
   db:
     image: postgres:16-alpine
     container_name: campus_wifi_db
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_DB: ${DB_NAME:-campus_wifi_db}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
-    ports:
-      - "${DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    # Bind to loopback interface (127.0.0.1) for local developer debugging without exposing to public network
+    ports:
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-campus_wifi_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 5s
+    networks:
+      - campus_net
 
+  # =========================================================================
+  # 2. Node.js Express Application Service
+  # =========================================================================
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: campus_wifi_app
-    restart: always
+    restart: unless-stopped
     environment:
-      PORT: 3000
       NODE_ENV: production
+      PORT: 3000
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-campus_wifi_db}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      REQUIRE_AUTH: "false"
     ports:
       - "3000:3000"
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - campus_net
 
+# =========================================================================
+# Shared Docker Bridge Network
+# =========================================================================
+networks:
+  campus_net:
+    driver: bridge
+
+# =========================================================================
+# Persistent PostgreSQL Data Volume (retains database across restarts)
+# =========================================================================
 volumes:
   pgdata:
+    name: campus-wifi-tracker_pgdata
