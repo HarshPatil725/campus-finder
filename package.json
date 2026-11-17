@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
-    "test": "node --test tests/"
+    "test": "node --test 'tests/*.test.js'",
+    "db:init": "node database/scripts/init_db.js",
+    "db:seed": "node database/scripts/seed.js",
+    "db:validate": "node database/scripts/validate.js"
   },
   "keywords": [
     "campus-wifi",

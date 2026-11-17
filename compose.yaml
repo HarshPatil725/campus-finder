@@ -4,7 +4,7 @@ services:
     container_name: campus_wifi_db
     restart: always
     environment:
-      POSTGRES_DB: ${DB_NAME:-campus_wifi}
+      POSTGRES_DB: ${DB_NAME:-campus_wifi_db}
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
@@ -12,7 +12,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-campus_wifi}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-campus_wifi_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
       NODE_ENV: production
       DB_HOST: db
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-campus_wifi}
+      DB_NAME: ${DB_NAME:-campus_wifi_db}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
