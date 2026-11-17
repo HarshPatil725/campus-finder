@@ -1,0 +1,31 @@
+{
+  "name": "campus-wifi-tracker",
+  "version": "1.0.0",
+  "description": "Campus Wi-Fi Monitoring and Incident Management System",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "test": "node --test tests/"
+  },
+  "keywords": [
+    "campus-wifi",
+    "network-monitoring",
+    "incident-management",
+    "express",
+    "postgresql",
+    "chartjs",
+    "bootstrap5"
+  ],
+  "author": "Harsh Patil",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
